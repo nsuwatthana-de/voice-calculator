@@ -67,6 +67,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 .chk{display:flex;align-items:center;gap:10px;min-height:46px;color:var(--text);font-weight:700;margin:0;font-size:1rem;cursor:pointer}
 .chk input{width:24px;height:24px;min-height:0;margin:0;padding:0;accent-color:var(--ok)}
 .row .pay .btn{min-height:46px}
+.slip{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.slip-btn{min-height:46px;display:inline-flex;align-items:center;margin:0;cursor:pointer;font-size:1rem;color:var(--text)}
+.slip-th{width:46px;height:46px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
 @media (min-width:640px){
   .row{grid-template-columns:2fr 1.4fr .8fr 1fr 1fr 1.2fr;background:transparent;align-items:end}
   .row .nm{grid-column:auto}
@@ -238,7 +241,7 @@ function today(){
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
 }
 function uid(){ return Math.random().toString(36).slice(2, 10); }
-function emptyStudent(){ return { name:"", back:"", num:"", shirt:"", pants:"", paid:false }; }
+function emptyStudent(){ return { name:"", back:"", num:"", shirt:"", pants:"", paid:false, slip:"" }; }
 function newOrder(from, id){
   return {
     id: id || uid(),
@@ -276,7 +279,12 @@ function load(){
   state = { activeId: o.id, orders: [o] };
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  try{
+    localStorage.setItem(KEY, JSON.stringify(state));
+  }catch(e){
+    const el = document.getElementById("status");
+    if (el) el.textContent = "บันทึกไม่สำเร็จ: เนื้อที่ในเบราว์เซอร์เต็ม ลองลบสลิปบางรายการ";
+  }
 }
 function cur(){
   return state.orders.find(o => o.id === state.activeId) || state.orders[0];
@@ -348,6 +356,13 @@ function renderRows(){
       </div>
       <div class="pay">
         <label class="chk"><input type="checkbox" data-f="paid"${st.paid?" checked":""}> จ่ายเงินแล้ว</label>
+        <div class="slip">
+          ${st.slip
+            ? `<a href="${st.slip}" target="_blank" rel="noopener" aria-label="ดูสลิปของ ${esc(st.name)}"><img src="${st.slip}" class="slip-th" alt="สลิป"></a>
+               <button class="btn danger" data-slipdel="${i}">ลบสลิป</button>`
+            : `<label class="btn slip-btn" for="sl-${i}">แนบสลิป</label>
+               <input id="sl-${i}" type="file" accept="image/*" data-slipadd="${i}" hidden>`}
+        </div>
         <button class="btn danger" data-del="${i}" aria-label="ลบรายการนี้">ลบ</button>
       </div>
     </div>`).join("");
@@ -376,6 +391,7 @@ function summaryHTML(){
     <div class="paysum">
       <p><b>จ่ายแล้ว</b> ${st.paidN} ชุด${st.price ? ` (${baht(st.paidAmt)})` : ""}</p>
       <p><b>ยังไม่จ่าย</b> ${st.unpaidN} ชุด${st.price ? ` (${baht(st.dueAmt)})` : ""}</p>
+      <p><b>แนบสลิปแล้ว</b> ${filled().filter(s => s.slip).length} คน</p>
       ${names ? `<p class="note" style="margin:0">ยังไม่จ่าย: ${esc(names)}</p>` : ""}
     </div>`;
 }
@@ -499,9 +515,33 @@ function onStudentField(e){
   refresh();
 }
 $("rows").addEventListener("input", onStudentField);
-$("rows").addEventListener("change", e => { if (e.target.type === "checkbox") onStudentField(e); });
+$("rows").addEventListener("change", async e => {
+  if (e.target.type === "checkbox") return onStudentField(e);
+  const idx = e.target.dataset.slipadd;
+  if (idx === undefined) return;
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try{
+    const st = cur().students[+idx];
+    st.slip = await shrinkImage(file, 1000, "image/jpeg", 0.8);
+    st.paid = true; // แนบสลิปแล้วถือว่าจ่ายแล้ว ยกเลิกได้ที่ช่องติ๊ก
+    renderRows(); refresh();
+    $("status").textContent = "แนบสลิปแล้ว ติ๊กจ่ายเงินให้อัตโนมัติ";
+  }catch(err){
+    $("status").textContent = "อ่านรูปสลิปไม่สำเร็จ ลองเลือกไฟล์รูปอื่น";
+  }
+});
 
 $("rows").addEventListener("click", e => {
+  const slipDel = e.target.dataset.slipdel;
+  if (slipDel !== undefined){
+    const st = cur().students[+slipDel];
+    st.slip = "";
+    renderRows(); refresh();
+    $("status").textContent = "ลบสลิปแล้ว (สถานะจ่ายเงินยังคงเดิม)";
+    return;
+  }
   const del = e.target.dataset.del;
   if (del === undefined) return;
   const students = cur().students;
@@ -572,7 +612,7 @@ $("qrPreview").addEventListener("click", e => {
   }
 });
 
-function shrinkImage(file, max){
+function shrinkImage(file, max, type = "image/png", quality = 0.92){
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -583,7 +623,7 @@ function shrinkImage(file, max){
       c.height = Math.round(img.height * scale);
       c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url);
-      resolve(c.toDataURL("image/png"));
+      resolve(c.toDataURL(type, quality));
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("load")); };
     img.src = url;

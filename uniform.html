@@ -7,42 +7,57 @@
 <title>สั่งชุดกีฬาให้นักเรียน</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
-  --bg:#f3f5f9; --card:#ffffff; --text:#1b2433; --muted:#5f6b7e; --line:#d8deea;
-  --accent:#1e5eff; --accent-text:#ffffff; --danger:#c62828; --ok:#1b7f3b; --warn-bg:#fff4e5; --warn-text:#8a4b00;
+  --bg:#f5f8ff; --card:#ffffff; --text:#172b52; --muted:#6b7b99; --line:#dce5f3;
+  --accent:#ff299b; --accent-text:#ffffff; --blue:#16bafa; --navy:#102b61;
+  --gradient:linear-gradient(120deg,#ff299b,#19bfff);
+  --danger:#c62828; --ok:#1b7f3b; --warn-bg:#fff4e5; --warn-text:#8a4b00;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0e1420; --card:#17202f; --text:#e8edf6; --muted:#9aa6bb; --line:#2b3648;
-    --accent:#5b8dff; --accent-text:#0b1220; --danger:#ff6b6b; --ok:#5fd28a; --warn-bg:#3a2a12; --warn-text:#ffd39a;
+    --accent:#ff5fb0; --accent-text:#0b1220; --navy:#e8edf6; --danger:#ff6b6b; --ok:#5fd28a; --warn-bg:#3a2a12; --warn-text:#ffd39a;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0e1420; --card:#17202f; --text:#e8edf6; --muted:#9aa6bb; --line:#2b3648;
-  --accent:#5b8dff; --accent-text:#0b1220; --danger:#ff6b6b; --ok:#5fd28a; --warn-bg:#3a2a12; --warn-text:#ffd39a;
+  --accent:#ff5fb0; --accent-text:#0b1220; --navy:#e8edf6; --danger:#ff6b6b; --ok:#5fd28a; --warn-bg:#3a2a12; --warn-text:#ffd39a;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Sarabun,system-ui,sans-serif;font-size:16px;line-height:1.5;padding-bottom:160px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Kanit,system-ui,sans-serif;font-size:16px;line-height:1.5;padding-bottom:160px}
 .wrap{max-width:720px;margin:0 auto;padding:16px}
 h1{font-size:1.4rem;margin:6px 0 2px}
 .lead{color:var(--muted);margin:0 0 14px;font-size:.95rem}
 
+/* หัวเว็บและส่วนหัวหน้า */
+.topbar{background:var(--card);box-shadow:0 3px 18px #193c7010;padding:14px 16px}
+.logo{font-size:24px;font-weight:800;font-style:italic;color:var(--navy);line-height:1}
+.logo span{color:var(--accent);margin-left:4px}
+.logo small{display:block;font-size:10px;font-style:normal;font-weight:500;letter-spacing:2px;color:var(--blue);margin-top:4px}
+.topbar{max-width:100%}
+.topbar .logo{max-width:720px;margin:0 auto}
+.hero{background:radial-gradient(circle at 85% 20%,#20c6ff40 0,transparent 40%),linear-gradient(115deg,#fff0fa,#d9f4ff 65%,#bceaff);border-radius:22px;padding:22px 20px;margin:16px 0}
+.hero-tag{display:inline-block;padding:5px 14px;background:var(--gradient);color:#fff;border-radius:30px;font-size:12px;margin-bottom:10px}
+.hero h1{font-size:clamp(26px,5vw,38px);line-height:1.2;font-weight:800;color:var(--navy)}
+.hero h1 span{color:var(--accent);display:block}
+.hero .lead{color:#536c94;margin:10px 0 0}
+
 /* แถบเลือกออเดอร์ */
-.orderbar{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:16px;display:grid;gap:10px}
+.orderbar{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:16px;display:grid;gap:10px;box-shadow:0 5px 20px #193c7010}
 .orderbar .top{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
 .orderbar select{font-weight:600}
 
 /* หัวข้อแต่ละขั้นตอน */
 .step{display:flex;align-items:center;gap:10px;margin:0 0 12px}
-.step .n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:grid;place-items:center;font-weight:700;flex:none}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--gradient);color:var(--accent-text);display:grid;place-items:center;font-weight:700;flex:none}
 .step h2{margin:0;font-size:1.1rem}
 .step .hint{margin-left:auto;color:var(--muted);font-size:.9rem}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:0 5px 20px #193c7010}
 .card h3{font-size:1rem;margin:16px 0 6px}
 details.card summary{cursor:pointer;font-weight:700;color:var(--accent);list-style:none;min-height:44px;display:flex;align-items:center}
 details.card summary::-webkit-details-marker{display:none}
@@ -79,7 +94,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 
 .btn{font:inherit;font-weight:600;min-height:46px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
 .btn:disabled{opacity:.6;cursor:wait}
-.btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.btn.primary{background:var(--gradient);color:var(--accent-text);border-color:transparent;box-shadow:0 7px 18px #ff299b40}
+.btn.primary:hover{transform:translateY(-2px)}
+.btn{transition:.2s}
 .btn.danger{color:var(--danger)}
 .btn.block{width:100%;margin-top:4px}
 .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
@@ -98,7 +115,7 @@ p.total{font-weight:700;margin:12px 0 0}
 .sheet-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* แถบล่าง: ยอดและปุ่มส่งออก มองเห็นตลอดเวลา */
-.dock{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -6px 22px #193c7018;border-radius:18px 18px 0 0;padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
 .dock-inner{max-width:720px;margin:0 auto;display:grid;gap:6px}
 .dock-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.95rem}
 .dock-top b{font-size:1.05rem}
@@ -134,9 +151,15 @@ p.total{font-weight:700;margin:12px 0 0}
 </style>
 </head>
 <body>
+<header class="topbar">
+  <div class="logo">ชุดกีฬา<span>ออเดอร์</span><small>สั่งให้นักเรียนง่าย ๆ ในที่เดียว</small></div>
+</header>
 <div class="wrap">
-  <h1>สั่งชุดกีฬาให้นักเรียน</h1>
-  <p class="lead">เลือกออเดอร์ กรอกตามลำดับ 1 → 2 → 3 ระบบบันทึกให้อัตโนมัติ และยอดรวมอยู่ด้านล่างเสมอ</p>
+  <section class="hero">
+    <span class="hero-tag">SPORTSWEAR ORDER</span>
+    <h1>สั่งชุดกีฬา<span>ให้นักเรียนครบทีม</span></h1>
+    <p class="lead">เลือกออเดอร์ กรอกตามลำดับ 1 → 2 → 3 ระบบบันทึกให้อัตโนมัติ และยอดรวมอยู่ด้านล่างเสมอ</p>
+  </section>
 
   <!-- เลือกออเดอร์ -->
   <div class="orderbar">

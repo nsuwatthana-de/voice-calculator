@@ -71,6 +71,20 @@ tfoot td{font-weight:700;background:var(--soft)}
 .badge.none{background:var(--bad-bg);color:var(--bad)}
 .badge.incomplete{background:var(--neutral-bg);color:var(--muted)}
 
+/* รายชื่อสมาชิก: บนจอกว้างเป็นตาราง บนมือถือแสดงเป็นการ์ดต่อคน ไม่ถูกตัดคอลัมน์ */
+.mtbl{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+@media (max-width:700px){
+  .mtbl thead{display:none}
+  .mtbl,.mtbl tbody{display:block;width:100%}
+  .mtbl tr{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .mtbl tr:last-child{border-bottom:0}
+  .mtbl td{border:0;padding:0;display:flex;justify-content:space-between;gap:8px;font-size:.92rem;text-align:left}
+  .mtbl td::before{content:attr(data-label);color:var(--muted);font-size:.8rem;font-weight:600;white-space:nowrap;margin-right:6px}
+  .mtbl td.num{display:none}
+  .mtbl td.nm{grid-column:1/-1;justify-content:flex-start;font-weight:700;font-size:1.05rem;color:var(--navy)}
+  .mtbl td.nm::before{content:none}
+  .mtbl td[data-label="การจ่าย"]{grid-column:1/-1}
+}
 .list{margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--soft);list-style:none}
 .list li{padding:4px 0;border-bottom:1px dashed var(--line)}
 .list li:last-child{border-bottom:0}
@@ -186,23 +200,23 @@ function orderSection(o, idx){
     : `<div class="empty">จ่ายครบทุกชุดแล้ว</div>`;
 
   const members = S.list.length
-    ? `<div class="scroll"><table>
+    ? `<table class="mtbl">
         <thead><tr><th>ลำดับ</th><th>ชื่อ-สกุล</th><th>ชื่อหลังเสื้อ</th><th class="c">เบอร์</th><th class="c">ไซส์เสื้อ</th><th class="c">ไซส์กางเกง</th><th>ยอดที่โอน</th><th>การจ่าย</th></tr></thead>
         <tbody>${S.list.map((s, i) => {
           const st = payStatus(s, S.price);
           const amt = paidOf(s, S.price);
           return `<tr>
-            <td>${i+1}</td>
-            <td>${esc(s.name) || "-"}</td>
-            <td>${esc(s.back) || "-"}</td>
-            <td class="c">${esc(s.num) || "-"}</td>
-            <td class="c">${s.shirt || "-"}</td>
-            <td class="c">${s.pants || "-"}</td>
-            <td>${S.price ? baht(amt) : "-"}</td>
-            <td><span class="badge ${st}">${STATUS_LABEL[st]}</span></td>
+            <td data-label="ลำดับ" class="num">${i+1}</td>
+            <td data-label="ชื่อ-สกุล" class="nm">${esc(s.name) || "-"}</td>
+            <td data-label="ชื่อหลังเสื้อ">${esc(s.back) || "-"}</td>
+            <td data-label="เบอร์" class="c">${esc(s.num) || "-"}</td>
+            <td data-label="ไซส์เสื้อ" class="c">${s.shirt || "-"}</td>
+            <td data-label="ไซส์กางเกง" class="c">${s.pants || "-"}</td>
+            <td data-label="ยอดที่โอน">${S.price ? baht(amt) : "-"}</td>
+            <td data-label="การจ่าย"><span class="badge ${st}">${STATUS_LABEL[st]}</span></td>
           </tr>`;
         }).join("")}</tbody>
-      </table></div>`
+      </table>`
     : `<div class="empty">ยังไม่มีรายชื่อสมาชิก</div>`;
 
   const sizes = `<div class="scroll"><table>

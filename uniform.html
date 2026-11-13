@@ -35,14 +35,20 @@ h1{font-size:1.5rem;margin:8px 0 4px}
 .grid-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
 input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
-.row{display:grid;grid-template-columns:1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
-.row .sel{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);align-items:end}
+.row .nm{grid-column:1/-1}
+.row .sel{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;grid-column:1/-1}
 .row .sel .del label{visibility:hidden}
+.qr-thumb{width:160px;height:auto;display:block;background:#fff;border-radius:8px;padding:6px;margin-bottom:8px}
 @media (min-width:640px){
-  .row{grid-template-columns:2fr 1fr 1fr auto;align-items:end}
+  .row{grid-template-columns:2fr 1.4fr .8fr 1fr 1fr auto}
+  .row .nm{grid-column:auto}
   .row .sel{display:contents}
   .row .sel .del label{visibility:visible}
 }
+#sheet .qr-box{margin-top:18px;text-align:center}
+#sheet .qr-box img{width:200px;max-width:50%;height:auto}
+#sheet .qr-box p{margin:6px 0 0;font-size:15px}
 .btn{font:inherit;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
 .btn:disabled{opacity:.6;cursor:wait}
 .btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:600}
@@ -72,7 +78,12 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
 #sheet .c{text-align:center}
 #sheet tfoot td{font-weight:700;background:#f4f6fa}
 #sheet .empty{text-align:center;color:#666;padding:16px}
-@media (max-width:480px){ #sheet .info{grid-template-columns:1fr} }
+.sheet-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:480px){
+  #sheet .info{grid-template-columns:1fr}
+  .sheet-wrap #sheet{padding:14px}
+  .sheet-wrap #sheet th,.sheet-wrap #sheet td{padding:4px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -99,8 +110,8 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
       <button class="btn" id="bulkToggle">นำเข้าจากข้อความ</button>
     </div>
     <div id="bulkBox" hidden style="margin-top:12px">
-      <label for="bulkText">ใส่ทีละบรรทัด: ชื่อ, ขนาดเสื้อ, ขนาดกางเกง</label>
-      <textarea id="bulkText" rows="5" placeholder="สมชาย ใจดี, M, L&#10;สมหญิง รักเรียน, S, S"></textarea>
+      <label for="bulkText">ใส่ทีละบรรทัด: ชื่อ, ขนาดเสื้อ, ขนาดกางเกง, ชื่อหลังเสื้อ, เบอร์ (สองช่องหลังไม่ต้องใส่ก็ได้)</label>
+      <textarea id="bulkText" rows="5" placeholder="สมชาย ใจดี, M, L, SOMCHAI, 7&#10;สมหญิง รักเรียน, S, S"></textarea>
       <div class="btns"><button class="btn primary" id="bulkApply">เพิ่มรายการ</button></div>
       <p class="note">ขนาดที่ใช้ได้: XS, S, M, L, XL, 2XL, 3XL, 4XL</p>
     </div>
@@ -110,6 +121,16 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
   <section class="card">
     <h2>สรุปยอดส่งร้าน</h2>
     <div id="summary"></div>
+  </section>
+
+  <section class="card">
+    <h2>QR Code ชำระเงิน</h2>
+    <p class="note">อัปโหลดรูป QR Code (แนะนำให้ครอปเฉพาะส่วน QR) ระบบจะแสดงไว้ท้ายใบสั่งและในภาพ PNG เก็บไว้ในเครื่องนี้</p>
+    <div class="btns" style="margin-top:10px">
+      <label class="btn primary" for="qrFile" style="font-size:1rem;margin:0;cursor:pointer">เลือกรูป QR Code</label>
+      <input id="qrFile" type="file" accept="image/*" hidden>
+    </div>
+    <div id="qrPreview" style="margin-top:12px"></div>
   </section>
 
   <section class="card">
@@ -125,7 +146,7 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
 
   <section class="card">
     <h2>ตัวอย่างใบสั่งซื้อ (ภาพที่ดาวน์โหลดจะเป็นแบบนี้)</h2>
-    <div id="sheet"></div>
+    <div class="sheet-wrap"><div id="sheet"></div></div>
   </section>
 </div>
 
@@ -139,7 +160,7 @@ function today(){
   const p = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
 }
-function emptyStudent(){ return { name:"", shirt:"", pants:"" }; }
+function emptyStudent(){ return { name:"", back:"", num:"", shirt:"", pants:"" }; }
 
 let state = {
   info: { teacher:"", school:"", klass:"", shop:"", date: today() },
@@ -178,9 +199,17 @@ function sizeOptions(selected){
 function renderRows(){
   $("rows").innerHTML = state.students.map((st, i) => `
     <div class="row" data-i="${i}">
-      <div>
+      <div class="nm">
         <label for="n-${i}">ชื่อ-สกุล (คนที่ ${i+1})</label>
         <input id="n-${i}" data-f="name" value="${esc(st.name)}" placeholder="ชื่อ-สกุลนักเรียน">
+      </div>
+      <div class="bk">
+        <label for="b-${i}">ชื่อหลังเสื้อ</label>
+        <input id="b-${i}" data-f="back" value="${esc(st.back)}" placeholder="เช่น SOMCHAI">
+      </div>
+      <div class="no">
+        <label for="m-${i}">เบอร์หลังเสื้อ</label>
+        <input id="m-${i}" data-f="num" inputmode="numeric" value="${esc(st.num)}" placeholder="เช่น 7">
       </div>
       <div class="sel">
         <div><label for="s-${i}">เสื้อกีฬา</label><select id="s-${i}" data-f="shirt">${sizeOptions(st.shirt)}</select></div>
@@ -228,9 +257,11 @@ function renderSheet(){
     ? list.map((s, i) => `<tr>
         <td class="c">${i+1}</td>
         <td>${esc(s.name) || "-"}</td>
+        <td>${esc(s.back) || "-"}</td>
+        <td class="c">${esc(s.num) || "-"}</td>
         <td class="c">${s.shirt || "-"}</td>
         <td class="c">${s.pants || "-"}</td></tr>`).join("")
-    : `<tr><td colspan="4" class="empty">ยังไม่มีรายชื่อ</td></tr>`;
+    : `<tr><td colspan="6" class="empty">ยังไม่มีรายชื่อ</td></tr>`;
   $("sheet").innerHTML = `
     <h2>ใบสั่งชุดกีฬา</h2>
     <p class="sub">${esc(info.school) || "&nbsp;"}</p>
@@ -242,11 +273,18 @@ function renderSheet(){
     </div>
     <h3>รายชื่อนักเรียน (${list.length} คน)</h3>
     <table>
-      <thead><tr><th class="c" style="width:60px">ลำดับ</th><th>ชื่อ-สกุล</th><th class="c">เสื้อกีฬา</th><th class="c">กางเกงกีฬา</th></tr></thead>
+      <thead><tr><th class="c" style="width:50px">ลำดับ</th><th>ชื่อ-สกุล</th><th>ชื่อหลังเสื้อ</th><th class="c">เบอร์</th><th class="c">เสื้อกีฬา</th><th class="c">กางเกงกีฬา</th></tr></thead>
       <tbody>${body}</tbody>
     </table>
     <h3>สรุปจำนวนที่สั่ง</h3>
-    ${summaryHTML()}`;
+    ${summaryHTML()}
+    ${state.qr ? `<div class="qr-box"><img src="${state.qr}" alt="QR Code ชำระเงิน"><p>สแกนเพื่อชำระเงิน</p></div>` : ""}`;
+}
+
+function renderQrPreview(){
+  $("qrPreview").innerHTML = state.qr
+    ? `<img src="${state.qr}" alt="QR Code" class="qr-thumb"><button class="btn danger" id="qrRemove">ลบ QR Code</button>`
+    : `<p class="note">ยังไม่มี QR Code</p>`;
 }
 
 function refresh(){
@@ -254,6 +292,7 @@ function refresh(){
   renderSummary();
   renderWarn();
   renderSheet();
+  renderQrPreview();
 }
 
 /* ---------- Events ---------- */
@@ -300,9 +339,9 @@ $("bulkApply").addEventListener("click", () => {
   const lines = $("bulkText").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const added = [];
   for (const line of lines){
-    const [name = "", shirt = "", pants = ""] = line.split(/[,\t]/).map(p => p.trim());
+    const [name = "", shirt = "", pants = "", back = "", num = ""] = line.split(/[,\t]/).map(p => p.trim());
     if (!name) continue;
-    added.push({ name, shirt: normSize(shirt), pants: normSize(pants) });
+    added.push({ name, shirt: normSize(shirt), pants: normSize(pants), back: back.toUpperCase(), num });
   }
   if (!added.length){
     $("status").textContent = "ไม่พบรายการที่จะเพิ่ม ลองใส่แบบ: ชื่อ, ขนาดเสื้อ, ขนาดกางเกง";
@@ -318,7 +357,7 @@ $("bulkApply").addEventListener("click", () => {
 
 $("clearBtn").addEventListener("click", () => {
   if (!confirm("ล้างข้อมูลทั้งหมดในหน้านี้ใช่ไหม")) return;
-  state = { info: { teacher:"", school:"", klass:"", shop:"", date: today() }, students: [emptyStudent()] };
+  state = { info: { teacher:"", school:"", klass:"", shop:"", date: today() }, students: [emptyStudent()], qr: state.qr || "" };
   syncInfoInputs(); renderRows(); refresh();
   $("status").textContent = "ล้างข้อมูลแล้ว";
 });
@@ -356,8 +395,8 @@ $("xlsxBtn").addEventListener("click", () => {
     ["ถึงร้าน", info.shop],
     ["วันที่สั่ง", thaiDate(info.date)],
     [],
-    ["ลำดับ", "ชื่อ-สกุล", "เสื้อกีฬา", "กางเกงกีฬา"],
-    ...list.map((s, i) => [i+1, s.name, s.shirt, s.pants]),
+    ["ลำดับ", "ชื่อ-สกุล", "ชื่อหลังเสื้อ", "เบอร์หลังเสื้อ", "เสื้อกีฬา", "กางเกงกีฬา"],
+    ...list.map((s, i) => [i+1, s.name, s.back, s.num, s.shirt, s.pants]),
     [],
     ["รวมนักเรียน", list.length]
   ];
@@ -368,8 +407,8 @@ $("xlsxBtn").addEventListener("click", () => {
   ];
 
   const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
-  ws1["!cols"] = [{wch:12},{wch:30},{wch:14},{wch:16}];
-  ws1["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:3} }];
+  ws1["!cols"] = [{wch:10},{wch:28},{wch:16},{wch:14},{wch:14},{wch:16}];
+  ws1["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:5} }];
   const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
   ws2["!cols"] = [{wch:12},{wch:18},{wch:18}];
 
@@ -424,6 +463,46 @@ $("pngBtn").addEventListener("click", async () => {
     setBusy(btn, false);
   }
 });
+
+/* ---------- QR Code ---------- */
+$("qrFile").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try{
+    state.qr = await shrinkImage(file, 600);
+    refresh();
+    $("status").textContent = "เพิ่ม QR Code แล้ว";
+  }catch(err){
+    $("status").textContent = "อ่านรูปไม่สำเร็จ ลองเลือกไฟล์รูปอื่น";
+  }
+});
+
+$("qrPreview").addEventListener("click", e => {
+  if (e.target.id === "qrRemove"){
+    state.qr = "";
+    refresh();
+    $("status").textContent = "ลบ QR Code แล้ว";
+  }
+});
+
+function shrinkImage(file, max){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/png"));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("load")); };
+    img.src = url;
+  });
+}
 
 /* ---------- Init ---------- */
 load();

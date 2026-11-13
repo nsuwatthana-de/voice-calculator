@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1e5eff">
+<title>สั่งชุดกีฬาให้นักเรียน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg:#f3f5f9; --card:#ffffff; --text:#1b2433; --muted:#5f6b7e; --line:#d8deea;
+  --accent:#1e5eff; --accent-text:#ffffff; --danger:#c62828; --warn-bg:#fff4e5; --warn-text:#8a4b00;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1420; --card:#17202f; --text:#e8edf6; --muted:#9aa6bb; --line:#2b3648;
+    --accent:#5b8dff; --accent-text:#0b1220; --danger:#ff6b6b; --warn-bg:#3a2a12; --warn-text:#ffd39a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1420; --card:#17202f; --text:#e8edf6; --muted:#9aa6bb; --line:#2b3648;
+  --accent:#5b8dff; --accent-text:#0b1220; --danger:#ff6b6b; --warn-bg:#3a2a12; --warn-text:#ffd39a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Sarabun,system-ui,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:8px 0 4px}
+.lead{color:var(--muted);margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-size:1.1rem;margin:0 0 12px}
+.grid-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.row{display:grid;grid-template-columns:1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row .sel{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.row .sel .del label{visibility:hidden}
+@media (min-width:640px){
+  .row{grid-template-columns:2fr 1fr 1fr auto;align-items:end}
+  .row .sel{display:contents}
+  .row .sel .del label{visibility:visible}
+}
+.btn{font:inherit;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:600}
+.btn.danger{color:var(--danger)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.warn{background:var(--warn-bg);color:var(--warn-text);padding:10px 12px;border-radius:10px;margin-top:12px;font-size:.95rem}
+.note{color:var(--muted);font-size:.9rem;margin:8px 0 0}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px;text-align:left}
+.tbl th{color:var(--muted);font-weight:600;font-size:.9rem}
+.tbl .c{text-align:center}
+.tbl tfoot td{font-weight:700}
+
+/* ใบสั่งซื้อ (ใช้เป็นภาพที่ส่งออก จึงคงสีขาวเสมอ) */
+#sheet{background:#ffffff;color:#111;padding:28px;border-radius:8px;width:100%;max-width:720px;margin:0 auto}
+#sheet .tbl th,#sheet .tbl td{color:#111;border:1px solid #999;padding:6px 8px;font-size:15px}
+#sheet .tbl th{background:#e8eefc;font-weight:700}
+#sheet .tbl tfoot td{background:#f4f6fa}
+#sheet h2{margin:0 0 6px;font-size:22px;text-align:center}
+#sheet .sub{text-align:center;margin:0 0 14px;font-size:14px;color:#444}
+#sheet .info{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;font-size:15px;margin-bottom:14px}
+#sheet .info b{font-weight:700}
+#sheet h3{font-size:16px;margin:18px 0 8px}
+#sheet table{width:100%;border-collapse:collapse;font-size:15px}
+#sheet th,#sheet td{border:1px solid #999;padding:6px 8px;text-align:left}
+#sheet th{background:#e8eefc}
+#sheet .c{text-align:center}
+#sheet tfoot td{font-weight:700;background:#f4f6fa}
+#sheet .empty{text-align:center;color:#666;padding:16px}
+@media (max-width:480px){ #sheet .info{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>สั่งชุดกีฬาให้นักเรียน</h1>
+  <p class="lead">กรอกขนาดเสื้อและกางเกงกีฬาของนักเรียนแต่ละคน แล้วส่งออกเป็น Excel หรือภาพเพื่อส่งให้ร้าน</p>
+
+  <section class="card">
+    <h2>ข้อมูลการสั่ง</h2>
+    <div class="grid-info" id="info">
+      <div><label for="i-teacher">ชื่อครูผู้สั่ง</label><input id="i-teacher" data-k="teacher" placeholder="เช่น ครูสมศรี"></div>
+      <div><label for="i-school">โรงเรียน</label><input id="i-school" data-k="school" placeholder="ชื่อโรงเรียน"></div>
+      <div><label for="i-klass">ชั้น / ห้อง</label><input id="i-klass" data-k="klass" placeholder="เช่น ม.1/2"></div>
+      <div><label for="i-shop">ถึงร้าน</label><input id="i-shop" data-k="shop" placeholder="ชื่อร้านที่สั่ง"></div>
+      <div><label for="i-date">วันที่สั่ง</label><input id="i-date" type="date" data-k="date"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>รายชื่อนักเรียน</h2>
+    <div id="rows"></div>
+    <div class="btns">
+      <button class="btn primary" id="addBtn">+ เพิ่มนักเรียน</button>
+      <button class="btn" id="bulkToggle">นำเข้าจากข้อความ</button>
+    </div>
+    <div id="bulkBox" hidden style="margin-top:12px">
+      <label for="bulkText">ใส่ทีละบรรทัด: ชื่อ, ขนาดเสื้อ, ขนาดกางเกง</label>
+      <textarea id="bulkText" rows="5" placeholder="สมชาย ใจดี, M, L&#10;สมหญิง รักเรียน, S, S"></textarea>
+      <div class="btns"><button class="btn primary" id="bulkApply">เพิ่มรายการ</button></div>
+      <p class="note">ขนาดที่ใช้ได้: XS, S, M, L, XL, 2XL, 3XL, 4XL</p>
+    </div>
+    <div id="warn"></div>
+  </section>
+
+  <section class="card">
+    <h2>สรุปยอดส่งร้าน</h2>
+    <div id="summary"></div>
+  </section>
+
+  <section class="card">
+    <h2>ส่งออก</h2>
+    <p class="note">ข้อมูลถูกบันทึกไว้ในเครื่องนี้ของคุณ เพื่อให้กลับมาทำต่อได้ ไม่ได้ส่งไปที่ไหน</p>
+    <div class="btns">
+      <button class="btn primary" id="xlsxBtn">ดาวน์โหลด Excel (.xlsx)</button>
+      <button class="btn primary" id="pngBtn">ดาวน์โหลดภาพ (.png)</button>
+      <button class="btn danger" id="clearBtn">ล้างข้อมูลทั้งหมด</button>
+    </div>
+    <p class="note" id="status" role="status"></p>
+  </section>
+
+  <section class="card">
+    <h2>ตัวอย่างใบสั่งซื้อ (ภาพที่ดาวน์โหลดจะเป็นแบบนี้)</h2>
+    <div id="sheet"></div>
+  </section>
+</div>
+
+<script>
+const SIZES = ["XS","S","M","L","XL","2XL","3XL","4XL"];
+const KEY = "uniform-order-v1";
+const $ = id => document.getElementById(id);
+
+function today(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function emptyStudent(){ return { name:"", shirt:"", pants:"" }; }
+
+let state = {
+  info: { teacher:"", school:"", klass:"", shop:"", date: today() },
+  students: [ emptyStudent() ]
+};
+
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.info && Array.isArray(s.students)) state = s;
+  }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function isFilled(s){ return s.name.trim() !== "" || s.shirt || s.pants; }
+function filled(){ return state.students.filter(isFilled); }
+function isComplete(s){ return s.name.trim() !== "" && s.shirt && s.pants; }
+
+function thaiDate(v){
+  if (!v) return "-";
+  const [y,m,d] = v.split("-").map(Number);
+  if (!y || !m || !d) return v;
+  return new Date(y, m-1, d).toLocaleDateString("th-TH", {year:"numeric", month:"long", day:"numeric"});
+}
+
+function sizeOptions(selected){
+  return `<option value="">เลือก</option>` +
+    SIZES.map(s => `<option value="${s}"${s===selected?" selected":""}>${s}</option>`).join("");
+}
+
+function renderRows(){
+  $("rows").innerHTML = state.students.map((st, i) => `
+    <div class="row" data-i="${i}">
+      <div>
+        <label for="n-${i}">ชื่อ-สกุล (คนที่ ${i+1})</label>
+        <input id="n-${i}" data-f="name" value="${esc(st.name)}" placeholder="ชื่อ-สกุลนักเรียน">
+      </div>
+      <div class="sel">
+        <div><label for="s-${i}">เสื้อกีฬา</label><select id="s-${i}" data-f="shirt">${sizeOptions(st.shirt)}</select></div>
+        <div><label for="p-${i}">กางเกงกีฬา</label><select id="p-${i}" data-f="pants">${sizeOptions(st.pants)}</select></div>
+        <div class="del"><label>ลบ</label><button class="btn danger" data-del="${i}" aria-label="ลบรายการนี้">ลบ</button></div>
+      </div>
+    </div>`).join("");
+}
+
+function countSize(key, size){
+  return filled().filter(s => s[key] === size).length;
+}
+
+function summaryHTML(){
+  const rows = SIZES.map(sz => {
+    const sh = countSize("shirt", sz), pa = countSize("pants", sz);
+    return `<tr><td>${sz}</td><td class="c">${sh}</td><td class="c">${pa}</td></tr>`;
+  }).join("");
+  const totalShirt = filled().filter(s => s.shirt).length;
+  const totalPants = filled().filter(s => s.pants).length;
+  return `
+    <table class="tbl">
+      <thead><tr><th>ขนาด</th><th class="c">เสื้อกีฬา (ตัว)</th><th class="c">กางเกงกีฬา (ตัว)</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td>รวม</td><td class="c">${totalShirt}</td><td class="c">${totalPants}</td></tr></tfoot>
+    </table>`;
+}
+
+function renderSummary(){
+  $("summary").innerHTML = summaryHTML();
+}
+
+function renderWarn(){
+  const list = filled();
+  const incomplete = list.filter(s => !isComplete(s)).length;
+  $("warn").innerHTML = incomplete
+    ? `<div class="warn">มี ${incomplete} รายการที่ยังกรอกไม่ครบ (ต้องมีชื่อ ขนาดเสื้อ และขนาดกางเกง) จะไม่สมบูรณ์ในใบสั่ง</div>`
+    : "";
+}
+
+function renderSheet(){
+  const info = state.info;
+  const list = filled();
+  const body = list.length
+    ? list.map((s, i) => `<tr>
+        <td class="c">${i+1}</td>
+        <td>${esc(s.name) || "-"}</td>
+        <td class="c">${s.shirt || "-"}</td>
+        <td class="c">${s.pants || "-"}</td></tr>`).join("")
+    : `<tr><td colspan="4" class="empty">ยังไม่มีรายชื่อ</td></tr>`;
+  $("sheet").innerHTML = `
+    <h2>ใบสั่งชุดกีฬา</h2>
+    <p class="sub">${esc(info.school) || "&nbsp;"}</p>
+    <div class="info">
+      <div><b>ครูผู้สั่ง:</b> ${esc(info.teacher) || "-"}</div>
+      <div><b>ชั้น / ห้อง:</b> ${esc(info.klass) || "-"}</div>
+      <div><b>ถึงร้าน:</b> ${esc(info.shop) || "-"}</div>
+      <div><b>วันที่สั่ง:</b> ${thaiDate(info.date)}</div>
+    </div>
+    <h3>รายชื่อนักเรียน (${list.length} คน)</h3>
+    <table>
+      <thead><tr><th class="c" style="width:60px">ลำดับ</th><th>ชื่อ-สกุล</th><th class="c">เสื้อกีฬา</th><th class="c">กางเกงกีฬา</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    <h3>สรุปจำนวนที่สั่ง</h3>
+    ${summaryHTML()}`;
+}
+
+function refresh(){
+  save();
+  renderSummary();
+  renderWarn();
+  renderSheet();
+}
+
+/* ---------- Events ---------- */
+$("info").addEventListener("input", e => {
+  const k = e.target.dataset.k;
+  if (k) { state.info[k] = e.target.value; refresh(); }
+});
+
+$("rows").addEventListener("input", e => {
+  const f = e.target.dataset.f;
+  const row = e.target.closest(".row");
+  if (!f || !row) return;
+  state.students[+row.dataset.i][f] = e.target.value;
+  refresh();
+});
+
+$("rows").addEventListener("click", e => {
+  const del = e.target.dataset.del;
+  if (del === undefined) return;
+  state.students.splice(+del, 1);
+  if (!state.students.length) state.students.push(emptyStudent());
+  renderRows(); refresh();
+});
+
+$("addBtn").addEventListener("click", () => {
+  state.students.push(emptyStudent());
+  renderRows(); refresh();
+  const inputs = document.querySelectorAll("#rows input");
+  inputs[inputs.length-1]?.focus();
+});
+
+$("bulkToggle").addEventListener("click", () => {
+  const box = $("bulkBox");
+  box.hidden = !box.hidden;
+  if (!box.hidden) $("bulkText").focus();
+});
+
+function normSize(v){
+  const u = String(v ?? "").toUpperCase().replace(/\s+/g, "");
+  return SIZES.includes(u) ? u : "";
+}
+
+$("bulkApply").addEventListener("click", () => {
+  const lines = $("bulkText").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const added = [];
+  for (const line of lines){
+    const [name = "", shirt = "", pants = ""] = line.split(/[,\t]/).map(p => p.trim());
+    if (!name) continue;
+    added.push({ name, shirt: normSize(shirt), pants: normSize(pants) });
+  }
+  if (!added.length){
+    $("status").textContent = "ไม่พบรายการที่จะเพิ่ม ลองใส่แบบ: ชื่อ, ขนาดเสื้อ, ขนาดกางเกง";
+    return;
+  }
+  const first = state.students[0];
+  if (state.students.length === 1 && !isFilled(first)) state.students = [];
+  state.students.push(...added);
+  $("bulkText").value = "";
+  renderRows(); refresh();
+  $("status").textContent = `เพิ่มนักเรียน ${added.length} คนแล้ว`;
+});
+
+$("clearBtn").addEventListener("click", () => {
+  if (!confirm("ล้างข้อมูลทั้งหมดในหน้านี้ใช่ไหม")) return;
+  state = { info: { teacher:"", school:"", klass:"", shop:"", date: today() }, students: [emptyStudent()] };
+  syncInfoInputs(); renderRows(); refresh();
+  $("status").textContent = "ล้างข้อมูลแล้ว";
+});
+
+function syncInfoInputs(){
+  document.querySelectorAll("#info [data-k]").forEach(el => el.value = state.info[el.dataset.k] || "");
+}
+
+/* ---------- Export ---------- */
+function fileBase(){
+  const k = (state.info.klass || "ห้อง").replace(/[\\/:*?"<>|]/g, "-");
+  return `สั่งชุดกีฬา_${k}_${state.info.date || today()}`;
+}
+
+function setBusy(btn, busy){
+  btn.disabled = busy;
+}
+
+$("xlsxBtn").addEventListener("click", () => {
+  const btn = $("xlsxBtn");
+  if (typeof XLSX === "undefined"){
+    $("status").textContent = "โหลดตัวสร้างไฟล์ Excel ไม่สำเร็จ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
+    return;
+  }
+  const list = filled();
+  if (!list.length){ $("status").textContent = "ยังไม่มีรายชื่อให้ส่งออก"; return; }
+  const info = state.info;
+
+  const sheet1 = [
+    ["ใบสั่งชุดกีฬา"],
+    [],
+    ["โรงเรียน", info.school],
+    ["ครูผู้สั่ง", info.teacher],
+    ["ชั้น / ห้อง", info.klass],
+    ["ถึงร้าน", info.shop],
+    ["วันที่สั่ง", thaiDate(info.date)],
+    [],
+    ["ลำดับ", "ชื่อ-สกุล", "เสื้อกีฬา", "กางเกงกีฬา"],
+    ...list.map((s, i) => [i+1, s.name, s.shirt, s.pants]),
+    [],
+    ["รวมนักเรียน", list.length]
+  ];
+  const sheet2 = [
+    ["ขนาด", "เสื้อกีฬา (ตัว)", "กางเกงกีฬา (ตัว)"],
+    ...SIZES.map(sz => [sz, countSize("shirt", sz), countSize("pants", sz)]),
+    ["รวม", list.filter(s => s.shirt).length, list.filter(s => s.pants).length]
+  ];
+
+  const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
+  ws1["!cols"] = [{wch:12},{wch:30},{wch:14},{wch:16}];
+  ws1["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:3} }];
+  const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
+  ws2["!cols"] = [{wch:12},{wch:18},{wch:18}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws1, "รายชื่อ");
+  XLSX.utils.book_append_sheet(wb, ws2, "สรุปส่งร้าน");
+  XLSX.writeFile(wb, fileBase() + ".xlsx");
+  $("status").textContent = "ดาวน์โหลดไฟล์ Excel แล้ว";
+});
+
+// ถ่ายภาพจากสำเนาที่มีความกว้างคงที่ 720px เสมอ ไม่ขึ้นกับความกว้างของหน้าจอที่ใช้อยู่
+async function captureSheet(){
+  const holder = document.createElement("div");
+  holder.style.cssText = "position:fixed;left:-10000px;top:0;width:720px;background:#ffffff";
+  const clone = $("sheet").cloneNode(true);
+  clone.style.width = "720px";
+  clone.style.maxWidth = "720px";
+  clone.style.margin = "0";
+  holder.appendChild(clone);
+  document.body.appendChild(holder);
+  try{
+    return await html2canvas(clone, { scale: 2, backgroundColor: "#ffffff", width: 720, windowWidth: 720 });
+  } finally {
+    holder.remove();
+  }
+}
+
+$("pngBtn").addEventListener("click", async () => {
+  const btn = $("pngBtn");
+  if (typeof html2canvas === "undefined"){
+    $("status").textContent = "โหลดตัวสร้างภาพไม่สำเร็จ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
+    return;
+  }
+  if (!filled().length){ $("status").textContent = "ยังไม่มีรายชื่อให้ส่งออก"; return; }
+  setBusy(btn, true);
+  $("status").textContent = "กำลังสร้างภาพ...";
+  try{
+    const canvas = await captureSheet();
+    canvas.toBlob(blob => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = fileBase() + ".png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      $("status").textContent = "ดาวน์โหลดภาพแล้ว";
+    }, "image/png");
+  }catch(err){
+    $("status").textContent = "สร้างภาพไม่สำเร็จ: " + (err && err.message ? err.message : err);
+  }finally{
+    setBusy(btn, false);
+  }
+});
+
+/* ---------- Init ---------- */
+load();
+syncInfoInputs();
+renderRows();
+refresh();
+</script>
+</body>
+</html>

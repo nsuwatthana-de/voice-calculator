@@ -50,6 +50,8 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
 #sheet .qr-box img{width:200px;max-width:50%;height:auto}
 #sheet .qr-box p{margin:6px 0 0;font-size:15px}
 .card h3{font-size:1rem;margin:16px 0 6px}
+p.total{font-weight:700;margin:10px 0 0}
+#sheet p.total{color:#111}
 img.chart{display:block;width:100%;max-width:640px;height:auto;margin:8px auto;border-radius:10px}
 .btn{font:inherit;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
 .btn:disabled{opacity:.6;cursor:wait}
@@ -101,6 +103,7 @@ img.chart{display:block;width:100%;max-width:640px;height:auto;margin:8px auto;b
       <div><label for="i-klass">ชั้น / ห้อง</label><input id="i-klass" data-k="klass" placeholder="เช่น ม.1/2"></div>
       <div><label for="i-shop">ถึงร้าน</label><input id="i-shop" data-k="shop" placeholder="เช่น DS Garment"></div>
       <div><label for="i-date">วันที่สั่ง</label><input id="i-date" type="date" data-k="date"></div>
+      <div><label for="i-price">ราคาต่อชุด (บาท)</label><input id="i-price" type="number" min="0" inputmode="decimal" data-k="price" placeholder="เช่น 290"></div>
     </div>
   </section>
 
@@ -240,11 +243,20 @@ function countSize(key, size){
   return filled().filter(s => s[key] === size).length;
 }
 
+// จำนวนชุด = นักเรียนที่มีชื่อ เสื้อ และกางเกงครบ; ยอดรวม = จำนวนชุด x ราคาต่อชุด
+function setsAndTotal(){
+  const sets = filled().filter(isComplete).length;
+  const price = Number(state.info.price) || 0;
+  return { sets, total: sets * price, price };
+}
+function baht(n){ return Number(n).toLocaleString("th-TH") + " บาท"; }
+
 function summaryHTML(){
   const rows = ALL_SIZES.map(sz => {
     const sh = countSize("shirt", sz), pa = countSize("pants", sz);
     return `<tr><td>${sz}</td><td class="c">${sh}</td><td class="c">${pa}</td></tr>`;
   }).join("");
+  const st = setsAndTotal();
   const totalShirt = filled().filter(s => s.shirt).length;
   const totalPants = filled().filter(s => s.pants).length;
   return `
@@ -252,7 +264,8 @@ function summaryHTML(){
       <thead><tr><th>ขนาด</th><th class="c">เสื้อกีฬา (ตัว)</th><th class="c">กางเกงกีฬา (ตัว)</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr><td>รวม</td><td class="c">${totalShirt}</td><td class="c">${totalPants}</td></tr></tfoot>
-    </table>`;
+    </table>
+    <p class="total">จำนวนชุด ${st.sets} ชุด · ยอดรวม ${st.price ? baht(st.total) : "-"}${st.price ? ` (ชุดละ ${baht(st.price)})` : ""}</p>`;
 }
 
 function renderSummary(){
@@ -287,6 +300,7 @@ function renderSheet(){
       <div><b>ชั้น / ห้อง:</b> ${esc(info.klass) || "-"}</div>
       <div><b>ถึงร้าน:</b> ${esc(info.shop) || "-"}</div>
       <div><b>วันที่สั่ง:</b> ${thaiDate(info.date)}</div>
+      <div><b>ราคาต่อชุด:</b> ${info.price ? baht(info.price) : "-"}</div>
     </div>
     <h3>รายชื่อนักเรียน (${list.length} คน)</h3>
     <table>
@@ -411,6 +425,7 @@ $("xlsxBtn").addEventListener("click", () => {
     ["ชั้น / ห้อง", info.klass],
     ["ถึงร้าน", info.shop],
     ["วันที่สั่ง", thaiDate(info.date)],
+    ["ราคาต่อชุด (บาท)", info.price || "-"],
     [],
     ["ลำดับ", "ชื่อ-สกุล", "ชื่อหลังเสื้อ", "เบอร์หลังเสื้อ", "เสื้อกีฬา", "กางเกงกีฬา"],
     ...list.map((s, i) => [i+1, s.name, s.back, s.num, s.shirt, s.pants]),
@@ -420,7 +435,10 @@ $("xlsxBtn").addEventListener("click", () => {
   const sheet2 = [
     ["ขนาด", "เสื้อกีฬา (ตัว)", "กางเกงกีฬา (ตัว)"],
     ...ALL_SIZES.map(sz => [sz, countSize("shirt", sz), countSize("pants", sz)]),
-    ["รวม", list.filter(s => s.shirt).length, list.filter(s => s.pants).length]
+    ["รวม", list.filter(s => s.shirt).length, list.filter(s => s.pants).length],
+    [],
+    ["จำนวนชุด (ครบเสื้อ+กางเกง)", setsAndTotal().sets],
+    ["ยอดรวม (บาท)", setsAndTotal().total]
   ];
 
   const ws1 = XLSX.utils.aoa_to_sheet(sheet1);

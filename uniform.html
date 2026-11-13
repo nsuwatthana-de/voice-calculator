@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1e5eff">
-<title>สั่งชุดกีฬาให้นักเรียน</title>
+<title>สั่งชุดกีฬาให้ทีม</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,31 +15,28 @@
   --bg:#f5f8ff; --card:#ffffff; --text:#172b52; --muted:#6b7b99; --line:#dce5f3;
   --accent:#ff299b; --accent-text:#ffffff; --blue:#16bafa; --navy:#102b61;
   --gradient:linear-gradient(120deg,#ff299b,#19bfff);
-  --danger:#c62828; --ok:#1b7f3b; --warn-bg:#fff4e5; --warn-text:#8a4b00;
+  --danger:#c62828; --ok:#1b7f3b; --ok-bg:#e6f8ee; --warn-bg:#fff4e5; --warn-text:#8a4b00; --bad-bg:#fdeaea;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0e1420; --card:#17202f; --text:#e8edf6; --muted:#9aa6bb; --line:#2b3648;
-    --accent:#ff5fb0; --accent-text:#0b1220; --navy:#e8edf6; --danger:#ff6b6b; --ok:#5fd28a; --warn-bg:#3a2a12; --warn-text:#ffd39a;
+    --accent:#ff5fb0; --accent-text:#0b1220; --navy:#e8edf6; --danger:#ff6b6b; --ok:#5fd28a; --ok-bg:#1d3a2a; --warn-bg:#3a2a12; --warn-text:#ffd39a; --bad-bg:#3a1d1d;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0e1420; --card:#17202f; --text:#e8edf6; --muted:#9aa6bb; --line:#2b3648;
-  --accent:#ff5fb0; --accent-text:#0b1220; --navy:#e8edf6; --danger:#ff6b6b; --ok:#5fd28a; --warn-bg:#3a2a12; --warn-text:#ffd39a;
+  --accent:#ff5fb0; --accent-text:#0b1220; --navy:#e8edf6; --danger:#ff6b6b; --ok:#5fd28a; --ok-bg:#1d3a2a; --warn-bg:#3a2a12; --warn-text:#ffd39a; --bad-bg:#3a1d1d;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Kanit,system-ui,sans-serif;font-size:16px;line-height:1.5;padding-bottom:160px}
 .wrap{max-width:720px;margin:0 auto;padding:16px}
 h1{font-size:1.4rem;margin:6px 0 2px}
-.lead{color:var(--muted);margin:0 0 14px;font-size:.95rem}
 
-/* หัวเว็บและส่วนหัวหน้า */
+/* หัวเว็บและส่วนหัว */
 .topbar{background:var(--card);box-shadow:0 3px 18px #193c7010;padding:14px 16px}
-.logo{font-size:24px;font-weight:800;font-style:italic;color:var(--navy);line-height:1}
+.logo{font-size:24px;font-weight:800;font-style:italic;color:var(--navy);line-height:1;max-width:720px;margin:0 auto}
 .logo span{color:var(--accent);margin-left:4px}
 .logo small{display:block;font-size:10px;font-style:normal;font-weight:500;letter-spacing:2px;color:var(--blue);margin-top:4px}
-.topbar{max-width:100%}
-.topbar .logo{max-width:720px;margin:0 auto}
 .hero{background:radial-gradient(circle at 85% 20%,#20c6ff40 0,transparent 40%),linear-gradient(115deg,#fff0fa,#d9f4ff 65%,#bceaff);border-radius:22px;padding:22px 20px;margin:16px 0}
 .hero-tag{display:inline-block;padding:5px 14px;background:var(--gradient);color:#fff;border-radius:30px;font-size:12px;margin-bottom:10px}
 .hero h1{font-size:clamp(26px,5vw,38px);line-height:1.2;font-weight:800;color:var(--navy)}
@@ -64,7 +61,7 @@ details.card summary::-webkit-details-marker{display:none}
 details.card summary::after{content:"ดู";margin-left:auto;font-weight:400;color:var(--muted);font-size:.9rem}
 details.card[open] summary::after{content:"ซ่อน"}
 details.card[open] summary{margin-bottom:10px}
-.sumline{cursor:pointer;color:var(--accent);font-weight:700;min-height:44px;display:flex;align-items:center;list-style:none}
+.sumtoggle{cursor:pointer;color:var(--accent);font-weight:700;min-height:44px;display:flex;align-items:center;list-style:none}
 
 .fields{display:grid;grid-template-columns:1fr;gap:12px}
 @media (min-width:600px){ .fields{grid-template-columns:1fr 1fr} }
@@ -73,30 +70,34 @@ input,select,textarea{width:100%;font:inherit;font-size:16px;min-height:46px;pad
 textarea{min-height:110px}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 
-/* รายชื่อนักเรียน: แต่ละคนเป็นการ์ดหนึ่งใบ */
+/* รายชื่อสมาชิก: แต่ละคนเป็นการ์ดหนึ่งใบ */
 #rows{display:grid;gap:12px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg);align-items:end}
 .row .nm{grid-column:1/-1}
 .row .sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;grid-column:1/-1}
-.row .pay{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.chk{display:flex;align-items:center;gap:10px;min-height:46px;color:var(--text);font-weight:700;margin:0;font-size:1rem;cursor:pointer}
-.chk input{width:24px;height:24px;min-height:0;margin:0;padding:0;accent-color:var(--ok)}
+.row .pay{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.row .pay .amt{width:150px}
+.row .pay .amt input{min-height:46px}
+.row .pay .slip{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .row .pay .btn{min-height:46px}
-.slip{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.slip-btn{min-height:46px;display:inline-flex;align-items:center;margin:0;cursor:pointer;font-size:1rem;color:var(--text)}
+.slip-btn{display:inline-flex;align-items:center;margin:0;cursor:pointer;font-size:1rem;color:var(--text)}
 .slip-th{width:46px;height:46px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
+.badge{padding:8px 12px;border-radius:20px;font-size:.85rem;font-weight:700;white-space:nowrap;align-self:center}
+.badge.full{background:var(--ok-bg);color:var(--ok)}
+.badge.wait{background:var(--warn-bg);color:var(--warn-text)}
+.badge.partial{background:var(--warn-bg);color:var(--warn-text)}
+.badge.none{background:var(--bad-bg);color:var(--danger)}
 @media (min-width:640px){
-  .row{grid-template-columns:2fr 1.4fr .8fr 1fr 1fr 1.2fr;background:transparent;align-items:end}
+  .row{grid-template-columns:2fr 1.4fr .8fr 1fr 1fr 2.6fr;background:transparent;align-items:end}
   .row .nm{grid-column:auto}
   .row .sel{display:contents}
-  .row .pay{grid-column:auto;justify-content:flex-start;flex-wrap:wrap}
+  .row .pay{grid-column:auto;flex-wrap:nowrap;align-items:center}
 }
 
-.btn{font:inherit;font-weight:600;min-height:46px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
+.btn{font:inherit;font-weight:600;min-height:46px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap;transition:.2s}
 .btn:disabled{opacity:.6;cursor:wait}
 .btn.primary{background:var(--gradient);color:var(--accent-text);border-color:transparent;box-shadow:0 7px 18px #ff299b40}
 .btn.primary:hover{transform:translateY(-2px)}
-.btn{transition:.2s}
 .btn.danger{color:var(--danger)}
 .btn.block{width:100%;margin-top:4px}
 .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
@@ -138,8 +139,7 @@ p.total{font-weight:700;margin:12px 0 0}
 #sheet .tbl th,#sheet .tbl td{color:#111;border:1px solid #999;padding:6px 8px;font-size:15px}
 #sheet .tbl th{background:#e8eefc;font-weight:700}
 #sheet .tbl tfoot td{background:#f4f6fa}
-#sheet p.total{color:#111}
-#sheet .paysum{color:#111}
+#sheet p.total,#sheet .paysum{color:#111}
 #sheet .qr-box{margin-top:18px;text-align:center}
 #sheet .qr-box img{width:200px;max-width:50%;height:auto}
 #sheet .qr-box p{margin:6px 0 0;font-size:15px}
@@ -152,12 +152,12 @@ p.total{font-weight:700;margin:12px 0 0}
 </head>
 <body>
 <header class="topbar">
-  <div class="logo">ชุดกีฬา<span>ออเดอร์</span><small>สั่งให้นักเรียนง่าย ๆ ในที่เดียว</small></div>
+  <div class="logo">ชุดกีฬา<span>ออเดอร์</span><small>สั่งให้ทีมครบในที่เดียว</small></div>
 </header>
 <div class="wrap">
   <section class="hero">
     <span class="hero-tag">SPORTSWEAR ORDER</span>
-    <h1>สั่งชุดกีฬา<span>ให้นักเรียนครบทีม</span></h1>
+    <h1>สั่งชุดกีฬา<span>ให้ทีมครบทุกคน</span></h1>
     <p class="lead">เลือกออเดอร์ กรอกตามลำดับ 1 → 2 → 3 ระบบบันทึกให้อัตโนมัติ และยอดรวมอยู่ด้านล่างเสมอ</p>
   </section>
 
@@ -178,9 +178,9 @@ p.total{font-weight:700;margin:12px 0 0}
   <section class="card">
     <div class="fields" id="info">
       <div style="grid-column:1/-1"><label for="o-name">ชื่องาน (เช่น ชุดฟุตบอล ม.1/2)</label><input id="o-name" data-o="name" placeholder="ตั้งชื่อให้จำง่าย" autocomplete="off"></div>
-      <div><label for="i-teacher">ชื่อครูผู้สั่ง</label><input id="i-teacher" data-k="teacher" placeholder="เช่น ครูสมศรี" autocomplete="off"></div>
-      <div><label for="i-school">โรงเรียน</label><input id="i-school" data-k="school" placeholder="ชื่อโรงเรียน" autocomplete="off"></div>
-      <div><label for="i-klass">ชั้น / ห้อง</label><input id="i-klass" data-k="klass" placeholder="เช่น ม.1/2" autocomplete="off"></div>
+      <div><label for="i-teacher">ชื่อผู้สั่ง</label><input id="i-teacher" data-k="teacher" placeholder="เช่น ครูสมศรี" autocomplete="off"></div>
+      <div><label for="i-school">ทีม / โรงเรียน / องค์กร</label><input id="i-school" data-k="school" placeholder="ชื่อทีมหรือโรงเรียน" autocomplete="off"></div>
+      <div><label for="i-klass">ชั้น / รุ่น</label><input id="i-klass" data-k="klass" placeholder="เช่น ม.1/2 หรือ U15" autocomplete="off"></div>
       <div><label for="i-shop">ถึงร้าน</label><input id="i-shop" data-k="shop" placeholder="เช่น DS Garment" autocomplete="off"></div>
       <div><label for="i-date">วันที่สั่ง</label><input id="i-date" type="date" data-k="date"></div>
       <div><label for="i-price">ราคาต่อชุด (บาท)</label><input id="i-price" type="number" min="0" inputmode="decimal" data-k="price" placeholder="เช่น 290"></div>
@@ -197,17 +197,17 @@ p.total{font-weight:700;margin:12px 0 0}
   </section>
 
   <!-- ขั้นที่ 2 -->
-  <div class="step"><span class="n">2</span><h2>รายชื่อนักเรียนและการจ่ายเงิน</h2><span class="hint" id="countHint"></span></div>
+  <div class="step"><span class="n">2</span><h2>รายชื่อสมาชิกและการจ่ายเงิน</h2><span class="hint" id="countHint"></span></div>
   <section class="card">
     <div id="warn"></div>
     <div id="rows"></div>
-    <button class="btn primary block" id="addBtn">+ เพิ่มนักเรียน</button>
+    <button class="btn primary block" id="addBtn">+ เพิ่มสมาชิก</button>
     <details style="margin-top:14px">
-      <summary style="cursor:pointer;color:var(--accent);font-weight:700;min-height:44px;display:flex;align-items:center">วางรายชื่อหลายคนพร้อมกัน</summary>
+      <summary class="sumtoggle">วางรายชื่อหลายคนพร้อมกัน</summary>
       <label for="bulkText" style="margin-top:8px">ทีละบรรทัด: ชื่อ, ไซส์เสื้อ, ไซส์กางเกง, ชื่อหลังเสื้อ, เบอร์</label>
       <textarea id="bulkText" placeholder="โบโซ่, 2XL, XL, BOZO, 23&#10;อุ้ย, L, L, LUMDUAN, 32"></textarea>
       <div class="btns"><button class="btn primary" id="bulkApply">เพิ่มรายการ</button></div>
-      <p class="note">ไซส์เสื้อ: SSS, SS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL · ไซส์กางเกง: SS, S, M, L, XL (ไม่ตรงกับตารางจะถูกเว้นว่าง) รายการที่นำเข้าจะยังไม่ได้จ่าย</p>
+      <p class="note">ไซส์เสื้อ: SSS, SS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL · ไซส์กางเกง: SS, S, M, L, XL (ไม่ตรงกับตารางจะถูกเว้นว่าง) รายการที่นำเข้าจะยังไม่ได้จ่ายเงิน</p>
     </details>
   </section>
 
@@ -254,6 +254,7 @@ p.total{font-weight:700;margin:12px 0 0}
 const SHIRT_SIZES = ["SSS","SS","S","M","L","XL","2XL","3XL","4XL","5XL"];
 const PANTS_SIZES = ["SS","S","M","L","XL"];
 const ALL_SIZES = ["SSS","SS","S","M","L","XL","2XL","3XL","4XL","5XL"];
+const STATUS_LABEL = { full:"จ่ายครบแล้ว", wait:"ยอดครบ รอสลิป", partial:"จ่ายไม่ครบ", none:"ยังไม่จ่าย" };
 const KEY = "uniform-order-v2";
 const OLD_KEY = "uniform-order-v1";
 const $ = id => document.getElementById(id);
@@ -264,7 +265,8 @@ function today(){
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
 }
 function uid(){ return Math.random().toString(36).slice(2, 10); }
-function emptyStudent(){ return { name:"", back:"", num:"", shirt:"", pants:"", paid:false, slip:"" }; }
+// amount = ยอดที่โอนจริง (ว่างได้), slip = รูปสลิป
+function emptyStudent(){ return { name:"", back:"", num:"", shirt:"", pants:"", amount:"", slip:"" }; }
 function newOrder(from, id){
   return {
     id: id || uid(),
@@ -293,19 +295,19 @@ function load(){
     // ย้ายข้อมูลจากเวอร์ชันเดิม (ออเดอร์เดียว) มาเป็นออเดอร์แรก
     const v1 = JSON.parse(localStorage.getItem(OLD_KEY));
     if (v1 && v1.info && Array.isArray(v1.students)){
-      const o = { id: "o1", name: "", info: v1.info, students: v1.students.map(x => ({ paid:false, ...x })), qr: v1.qr || "" };
-      state = { activeId: "o1", orders: [o] };
+      const o = { id:"o1", name:"", info:v1.info, students: v1.students.map(x => ({ ...emptyStudent(), ...x })), qr: v1.qr || "" };
+      state = { activeId:"o1", orders:[o] };
       return;
     }
   }catch(e){}
   const o = newOrder(null, "o1");
-  state = { activeId: o.id, orders: [o] };
+  state = { activeId:o.id, orders:[o] };
 }
 function save(){
   try{
     localStorage.setItem(KEY, JSON.stringify(state));
   }catch(e){
-    const el = document.getElementById("status");
+    const el = $("status");
     if (el) el.textContent = "บันทึกไม่สำเร็จ: เนื้อที่ในเบราว์เซอร์เต็ม ลองลบสลิปบางรายการ";
   }
 }
@@ -320,22 +322,42 @@ function isFilled(s){ return s.name.trim() !== "" || s.shirt || s.pants; }
 function filled(){ return cur().students.filter(isFilled); }
 function isComplete(s){ return s.name.trim() !== "" && s.shirt && s.pants; }
 
-// จำนวนชุดและยอดเงิน: นับเฉพาะคนที่มีชื่อ เสื้อ และกางเกงครบ
-function setsAndTotal(){
-  const price = Number(cur().info.price) || 0;
+// ยอดที่จ่ายจริงของคนหนึ่งคน (ไม่เกินราคาต่อชุด)
+// ข้อมูลเก่าที่ติ๊ก "จ่ายแล้ว" ไว้จะนับเป็นจ่ายครบ
+function paidOf(s, price){
+  if (s.amount !== undefined && s.amount !== ""){
+    return Math.min(Math.max(Number(s.amount) || 0, 0), price);
+  }
+  return s.paid ? price : 0;
+}
+// สถานะการจ่าย: ยอดครบ + มีสลิป = จ่ายครบ (อัตโนมัติ)
+function payStatus(s, price){
+  if (!isComplete(s)) return "";
+  const p = paidOf(s, price);
+  if (price > 0 && p >= price) return s.slip ? "full" : "wait";
+  if (p > 0) return "partial";
+  return "none";
+}
+
+function payInfo(){
+  const o = cur();
+  const price = Number(o.info.price) || 0;
   const comp = filled().filter(isComplete);
-  const paid = comp.filter(s => s.paid);
-  const unpaid = comp.filter(s => !s.paid);
-  return {
-    price,
-    sets: comp.length,
-    total: comp.length * price,
-    paidN: paid.length,
-    paidAmt: paid.length * price,
-    unpaidN: unpaid.length,
-    dueAmt: unpaid.length * price,
-    unpaidNames: unpaid.map(s => s.name.trim())
-  };
+  let paidAmt = 0, fullN = 0, waitN = 0, partialN = 0, noneN = 0;
+  const notFull = [];
+  for (const s of comp){
+    paidAmt += paidOf(s, price);
+    const st = payStatus(s, price);
+    if (st === "full") fullN++;
+    else {
+      notFull.push(s.name.trim());
+      if (st === "wait") waitN++;
+      else if (st === "partial") partialN++;
+      else noneN++;
+    }
+  }
+  const total = comp.length * price;
+  return { price, sets: comp.length, total, paidAmt, dueAmt: total - paidAmt, fullN, waitN, partialN, noneN, notFull };
 }
 function baht(n){ return Number(n).toLocaleString("th-TH") + " บาท"; }
 
@@ -352,18 +374,26 @@ function sizeOptions(selected, list){
     opts.map(s => `<option value="${s}"${s===selected?" selected":""}>${s}</option>`).join("");
 }
 
+function amountField(s, price){
+  if (s.amount !== undefined && s.amount !== "") return s.amount;
+  return s.paid && price ? String(price) : "";
+}
+
 function renderOrderSel(){
   $("orderSel").innerHTML = state.orders.map((o, i) =>
     `<option value="${o.id}"${o.id===state.activeId?" selected":""}>${esc(o.name) || "ออเดอร์ที่ " + (i+1)}</option>`).join("");
 }
 
 function renderRows(){
-  const students = cur().students;
-  $("rows").innerHTML = students.map((st, i) => `
+  const o = cur();
+  const price = Number(o.info.price) || 0;
+  $("rows").innerHTML = o.students.map((st, i) => {
+    const status = payStatus(st, price);
+    return `
     <div class="row" data-i="${i}">
       <div class="nm">
-        <label for="n-${i}">ชื่อ-สกุล (คนที่ ${i+1})</label>
-        <input id="n-${i}" data-f="name" value="${esc(st.name)}" placeholder="ชื่อ-สกุลนักเรียน" autocomplete="off">
+        <label for="n-${i}">ชื่อ-สกุล (ลำดับ ${i+1})</label>
+        <input id="n-${i}" data-f="name" value="${esc(st.name)}" placeholder="ชื่อ-สกุล" autocomplete="off">
       </div>
       <div class="bk">
         <label for="b-${i}">ชื่อหลังเสื้อ</label>
@@ -378,7 +408,11 @@ function renderRows(){
         <div><label for="p-${i}">ไซส์กางเกง</label><select id="p-${i}" data-f="pants">${sizeOptions(st.pants, PANTS_SIZES)}</select></div>
       </div>
       <div class="pay">
-        <label class="chk"><input type="checkbox" data-f="paid"${st.paid?" checked":""}> จ่ายเงินแล้ว</label>
+        <div class="amt">
+          <label for="a-${i}">ยอดที่โอน (บาท)</label>
+          <input id="a-${i}" type="number" min="0" inputmode="decimal" data-f="amount" value="${esc(amountField(st, price))}" placeholder="${price || "0"}">
+        </div>
+        ${status ? `<span class="badge ${status}">${STATUS_LABEL[status]}</span>` : ""}
         <div class="slip">
           ${st.slip
             ? `<a href="${st.slip}" target="_blank" rel="noopener" aria-label="ดูสลิปของ ${esc(st.name)}"><img src="${st.slip}" class="slip-th" alt="สลิป"></a>
@@ -388,7 +422,8 @@ function renderRows(){
         </div>
         <button class="btn danger" data-del="${i}" aria-label="ลบรายการนี้">ลบ</button>
       </div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 function countSize(key, size){
@@ -396,26 +431,26 @@ function countSize(key, size){
 }
 
 function summaryHTML(){
-  const st = setsAndTotal();
+  const p = payInfo();
   const rows = ALL_SIZES.map(sz => {
     const sh = countSize("shirt", sz), pa = countSize("pants", sz);
     return `<tr><td>${sz}</td><td class="c">${sh}</td><td class="c">${pa}</td></tr>`;
   }).join("");
   const totalShirt = filled().filter(s => s.shirt).length;
   const totalPants = filled().filter(s => s.pants).length;
-  const names = st.unpaidNames.length ? st.unpaidNames.join(", ") : "";
   return `
     <table class="tbl">
       <thead><tr><th>ไซส์</th><th class="c">เสื้อ (ตัว)</th><th class="c">กางเกง (ตัว)</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr><td>รวม</td><td class="c">${totalShirt}</td><td class="c">${totalPants}</td></tr></tfoot>
     </table>
-    <p class="total">จำนวนชุด ${st.sets} ชุด · ยอดรวม ${st.price ? baht(st.total) : "-"}${st.price ? ` (ชุดละ ${baht(st.price)})` : ""}</p>
+    <p class="total">จำนวนชุด ${p.sets} ชุด · ยอดรวม ${p.price ? baht(p.total) : "-"}${p.price ? ` (ชุดละ ${baht(p.price)})` : ""}</p>
     <div class="paysum">
-      <p><b>จ่ายแล้ว</b> ${st.paidN} ชุด${st.price ? ` (${baht(st.paidAmt)})` : ""}</p>
-      <p><b>ยังไม่จ่าย</b> ${st.unpaidN} ชุด${st.price ? ` (${baht(st.dueAmt)})` : ""}</p>
-      <p><b>แนบสลิปแล้ว</b> ${filled().filter(s => s.slip).length} คน</p>
-      ${names ? `<p class="note" style="margin:0">ยังไม่จ่าย: ${esc(names)}</p>` : ""}
+      <p><b>${STATUS_LABEL.full}</b> ${p.fullN} ชุด</p>
+      <p><b>${STATUS_LABEL.wait}</b> ${p.waitN} ชุด</p>
+      <p><b>${STATUS_LABEL.partial}</b> ${p.partialN} ชุด · <b>${STATUS_LABEL.none}</b> ${p.noneN} ชุด</p>
+      ${p.price ? `<p><b>ยอดที่รับแล้ว</b> ${baht(p.paidAmt)} · <b>ยอดค้าง</b> ${baht(p.dueAmt)}</p>` : ""}
+      ${p.notFull.length ? `<p class="note" style="margin:0">ยังไม่จ่ายครบ: ${esc(p.notFull.join(", "))}</p>` : ""}
     </div>`;
 }
 
@@ -432,16 +467,18 @@ function renderWarn(){
 }
 
 function renderDock(){
-  const st = setsAndTotal();
+  const p = payInfo();
   const n = filled().length;
-  $("dockStudents").textContent = `นักเรียน ${n} คน · ${st.sets} ชุด · จ่ายแล้ว ${st.paidN} ชุด`;
-  $("dockTotal").textContent = st.price ? `รวม ${baht(st.total)} · ค้าง ${baht(st.dueAmt)}` : "ยังไม่ได้ใส่ราคา";
+  $("dockStudents").textContent = `สมาชิก ${n} คน · ${p.sets} ชุด · จ่ายครบ ${p.fullN} ชุด`;
+  $("dockTotal").textContent = p.price ? `รวม ${baht(p.total)} · ค้าง ${baht(p.dueAmt)}` : "ยังไม่ได้ใส่ราคา";
   $("countHint").textContent = n ? `${n} คน` : "";
 }
 
 function renderSheet(){
-  const info = cur().info;
+  const o = cur();
+  const info = o.info;
   const list = filled();
+  const price = Number(info.price) || 0;
   const body = list.length
     ? list.map((s, i) => `<tr>
         <td class="c">${i+1}</td>
@@ -450,27 +487,27 @@ function renderSheet(){
         <td class="c">${esc(s.num) || "-"}</td>
         <td class="c">${s.shirt || "-"}</td>
         <td class="c">${s.pants || "-"}</td>
-        <td class="c">${isComplete(s) ? (s.paid ? "จ่ายแล้ว" : "ยัง") : "-"}</td></tr>`).join("")
+        <td class="c">${STATUS_LABEL[payStatus(s, price)] || "-"}</td></tr>`).join("")
     : `<tr><td colspan="7" class="empty">ยังไม่มีรายชื่อ</td></tr>`;
-  const title = cur().name ? esc(cur().name) : "ใบสั่งชุดกีฬา";
+  const title = o.name ? esc(o.name) : "ใบสั่งชุดกีฬา";
   $("sheet").innerHTML = `
     <h2>${title}</h2>
     <p class="sub">${esc(info.school) || "&nbsp;"}</p>
     <div class="info">
-      <div><b>ครูผู้สั่ง:</b> ${esc(info.teacher) || "-"}</div>
-      <div><b>ชั้น / ห้อง:</b> ${esc(info.klass) || "-"}</div>
+      <div><b>ผู้สั่ง:</b> ${esc(info.teacher) || "-"}</div>
+      <div><b>ชั้น / รุ่น:</b> ${esc(info.klass) || "-"}</div>
       <div><b>ถึงร้าน:</b> ${esc(info.shop) || "-"}</div>
       <div><b>วันที่สั่ง:</b> ${thaiDate(info.date)}</div>
       <div><b>ราคาต่อชุด:</b> ${info.price ? baht(info.price) : "-"}</div>
     </div>
-    <h3>รายชื่อนักเรียน (${list.length} คน)</h3>
+    <h3>รายชื่อสมาชิก (${list.length} คน)</h3>
     <table>
       <thead><tr><th class="c" style="width:50px">ลำดับ</th><th>ชื่อ-สกุล</th><th>ชื่อหลังเสื้อ</th><th class="c">เบอร์</th><th class="c">ไซส์เสื้อ</th><th class="c">ไซส์กางเกง</th><th class="c">การจ่าย</th></tr></thead>
       <tbody>${body}</tbody>
     </table>
     <h3>สรุปจำนวนที่สั่ง</h3>
     ${summaryHTML()}
-    ${cur().qr ? `<div class="qr-box"><img src="${cur().qr}" alt="QR Code ชำระเงิน"><p>สแกนเพื่อชำระเงิน</p></div>` : ""}`;
+    ${o.qr ? `<div class="qr-box"><img src="${o.qr}" alt="QR Code ชำระเงิน"><p>สแกนเพื่อชำระเงิน</p></div>` : ""}`;
 }
 
 function renderQrPreview(){
@@ -509,14 +546,14 @@ $("newOrder").addEventListener("click", () => {
   state.activeId = o.id;
   syncInfoInputs(); renderRows(); refresh();
   $("o-name").focus();
-  $("status").textContent = "สร้างออเดอร์ใหม่แล้ว (คัดลอกชื่อครู โรงเรียน และร้านมาให้)";
+  $("status").textContent = "สร้างออเดอร์ใหม่แล้ว (คัดลอกชื่อผู้สั่ง ทีม และร้านมาให้)";
 });
 
 $("delOrder").addEventListener("click", () => {
   const o = cur();
   if (!confirm(`ลบออเดอร์ "${o.name || "ไม่มีชื่อ"}" และรายชื่อทั้งหมดในออเดอร์นี้ใช่ไหม`)) return;
   state.orders = state.orders.filter(x => x.id !== o.id);
-  if (!state.orders.length){ const n = newOrder(null); state.orders.push(n); }
+  if (!state.orders.length){ state.orders.push(newOrder(null)); }
   state.activeId = state.orders[0].id;
   syncInfoInputs(); renderRows(); refresh();
   $("status").textContent = "ลบออเดอร์แล้ว";
@@ -526,43 +563,36 @@ $("info").addEventListener("input", e => {
   const o = cur();
   if (e.target.dataset.o){ o[e.target.dataset.o] = e.target.value; refresh(); return; }
   const k = e.target.dataset.k;
-  if (k){ o.info[k] = e.target.value; refresh(); }
+  if (k){
+    o.info[k] = e.target.value;
+    if (k === "price") renderRows();
+    refresh();
+  }
 });
 
-function onStudentField(e){
+// ระหว่างพิมพ์ไม่วาดแถวใหม่ เพื่อไม่ให้คีย์บอร์ดหลุด
+$("rows").addEventListener("input", e => {
   const f = e.target.dataset.f;
   const row = e.target.closest(".row");
   if (!f || !row) return;
-  const st = cur().students[+row.dataset.i];
-  st[f] = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+  cur().students[+row.dataset.i][f] = e.target.value;
   refresh();
-}
-$("rows").addEventListener("input", onStudentField);
-$("rows").addEventListener("change", async e => {
-  if (e.target.type === "checkbox") return onStudentField(e);
-  const idx = e.target.dataset.slipadd;
-  if (idx === undefined) return;
-  const file = e.target.files && e.target.files[0];
-  e.target.value = "";
-  if (!file) return;
-  try{
-    const st = cur().students[+idx];
-    st.slip = await shrinkImage(file, 1000, "image/jpeg", 0.8);
-    st.paid = true; // แนบสลิปแล้วถือว่าจ่ายแล้ว ยกเลิกได้ที่ช่องติ๊ก
-    renderRows(); refresh();
-    $("status").textContent = "แนบสลิปแล้ว ติ๊กจ่ายเงินให้อัตโนมัติ";
-  }catch(err){
-    $("status").textContent = "อ่านรูปสลิปไม่สำเร็จ ลองเลือกไฟล์รูปอื่น";
-  }
+});
+// เมื่อเลือกไซส์หรือกรอกยอดเสร็จ วาดแถวใหม่ให้ป้ายสถานะการจ่ายอัปเดต
+$("rows").addEventListener("change", e => {
+  const f = e.target.dataset.f;
+  const row = e.target.closest(".row");
+  if (!row || !["shirt","pants","amount"].includes(f)) return;
+  cur().students[+row.dataset.i][f] = e.target.value;
+  renderRows(); refresh();
 });
 
 $("rows").addEventListener("click", e => {
   const slipDel = e.target.dataset.slipdel;
   if (slipDel !== undefined){
-    const st = cur().students[+slipDel];
-    st.slip = "";
+    cur().students[+slipDel].slip = "";
     renderRows(); refresh();
-    $("status").textContent = "ลบสลิปแล้ว (สถานะจ่ายเงินยังคงเดิม)";
+    $("status").textContent = "ลบสลิปแล้ว";
     return;
   }
   const del = e.target.dataset.del;
@@ -581,6 +611,29 @@ $("addBtn").addEventListener("click", () => {
   if (last){ last.focus(); last.scrollIntoView({ behavior:"smooth", block:"center" }); }
 });
 
+$("rows").addEventListener("change", async e => {
+  const idx = e.target.dataset.slipadd;
+  if (idx === undefined) return;
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try{
+    const o = cur();
+    const st = o.students[+idx];
+    st.slip = await shrinkImage(file, 1000, "image/jpeg", 0.8);
+    const price = Number(o.info.price) || 0;
+    if (st.amount === undefined || st.amount === ""){
+      if (price > 0) st.amount = String(price);
+    }
+    renderRows(); refresh();
+    $("status").textContent = price > 0
+      ? "แนบสลิปแล้ว ระบบเช็คการจ่ายจากยอดที่โอน (แก้ยอดได้ถ้าไม่ตรง)"
+      : "แนบสลิปแล้ว กรุณาใส่ราคาต่อชุดก่อน ระบบจึงจะเช็คการจ่ายอัตโนมัติ";
+  }catch(err){
+    $("status").textContent = "อ่านรูปสลิปไม่สำเร็จ ลองเลือกไฟล์รูปอื่น";
+  }
+});
+
 function normSize(v, list){
   const u = String(v ?? "").toUpperCase().replace(/\s+/g, "");
   return list.includes(u) ? u : "";
@@ -592,7 +645,7 @@ $("bulkApply").addEventListener("click", () => {
   for (const line of lines){
     const [name = "", shirt = "", pants = "", back = "", num = ""] = line.split(/[,\t]/).map(p => p.trim());
     if (!name) continue;
-    added.push({ name, shirt: normSize(shirt, SHIRT_SIZES), pants: normSize(pants, PANTS_SIZES), back: back.toUpperCase(), num, paid:false });
+    added.push({ name, shirt: normSize(shirt, SHIRT_SIZES), pants: normSize(pants, PANTS_SIZES), back: back.toUpperCase(), num, amount:"", slip:"" });
   }
   if (!added.length){
     $("status").textContent = "ไม่พบรายการที่จะเพิ่ม ลองใส่แบบ: ชื่อ, ไซส์เสื้อ, ไซส์กางเกง";
@@ -603,11 +656,11 @@ $("bulkApply").addEventListener("click", () => {
   cur().students.push(...added);
   $("bulkText").value = "";
   renderRows(); refresh();
-  $("status").textContent = `เพิ่มนักเรียน ${added.length} คนแล้ว`;
+  $("status").textContent = `เพิ่มสมาชิก ${added.length} คนแล้ว`;
 });
 
 $("clearBtn").addEventListener("click", () => {
-  if (!confirm("ล้างรายชื่อนักเรียนในออเดอร์นี้ทั้งหมดใช่ไหม (ข้อมูลการสั่งและ QR Code จะยังอยู่)")) return;
+  if (!confirm("ล้างรายชื่อสมาชิกในออเดอร์นี้ทั้งหมดใช่ไหม (ข้อมูลการสั่งและ QR Code จะยังอยู่)")) return;
   cur().students = [emptyStudent()];
   renderRows(); refresh();
   $("status").textContent = "ล้างรายชื่อแล้ว";
@@ -669,43 +722,50 @@ $("xlsxBtn").addEventListener("click", () => {
   }
   const list = filled();
   if (!list.length){ $("status").textContent = "ยังไม่มีรายชื่อให้ส่งออก"; return; }
-  const info = cur().info;
-  const st = setsAndTotal();
+  const o = cur();
+  const info = o.info;
+  const p = payInfo();
 
   const sheet1 = [
-    [cur().name ? `ใบสั่งชุดกีฬา: ${cur().name}` : "ใบสั่งชุดกีฬา"],
+    [o.name ? `ใบสั่งชุดกีฬา: ${o.name}` : "ใบสั่งชุดกีฬา"],
     [],
-    ["โรงเรียน", info.school],
-    ["ครูผู้สั่ง", info.teacher],
-    ["ชั้น / ห้อง", info.klass],
+    ["ทีม / โรงเรียน", info.school],
+    ["ผู้สั่ง", info.teacher],
+    ["ชั้น / รุ่น", info.klass],
     ["ถึงร้าน", info.shop],
     ["วันที่สั่ง", thaiDate(info.date)],
     ["ราคาต่อชุด (บาท)", info.price || "-"],
     [],
-    ["ลำดับ", "ชื่อ-สกุล", "ชื่อหลังเสื้อ", "เบอร์หลังเสื้อ", "ไซส์เสื้อ", "ไซส์กางเกง", "จ่ายแล้ว"],
-    ...list.map((s, i) => [i+1, s.name, s.back, s.num, s.shirt, s.pants, isComplete(s) ? (s.paid ? "ใช่" : "ยัง") : "-"]),
+    ["ลำดับ", "ชื่อ-สกุล", "ชื่อหลังเสื้อ", "เบอร์หลังเสื้อ", "ไซส์เสื้อ", "ไซส์กางเกง", "ยอดที่โอน (บาท)", "การจ่าย"],
+    ...list.map((s, i) => [
+      i+1, s.name, s.back, s.num, s.shirt, s.pants,
+      s.amount !== undefined && s.amount !== "" ? Number(s.amount) : (s.paid ? Number(info.price) || 0 : 0),
+      STATUS_LABEL[payStatus(s, p.price)] || "-"
+    ]),
     [],
-    ["รวมนักเรียน", list.length]
+    ["รวมสมาชิก", list.length]
   ];
   const sheet2 = [
     ["ไซส์", "เสื้อ (ตัว)", "กางเกง (ตัว)"],
     ...ALL_SIZES.map(sz => [sz, countSizeOf(list, "shirt", sz), countSizeOf(list, "pants", sz)]),
     ["รวม", list.filter(s => s.shirt).length, list.filter(s => s.pants).length],
     [],
-    ["จำนวนชุด (ครบเสื้อ+กางเกง)", st.sets],
-    ["ยอดรวม (บาท)", st.total],
-    ["จ่ายแล้ว (ชุด)", st.paidN],
-    ["ยอดที่จ่ายแล้ว (บาท)", st.paidAmt],
-    ["ยังไม่จ่าย (ชุด)", st.unpaidN],
-    ["ยอดค้างจ่าย (บาท)", st.dueAmt],
-    ["รายชื่อที่ยังไม่จ่าย", st.unpaidNames.join(", ")]
+    ["จำนวนชุด (ครบเสื้อ+กางเกง)", p.sets],
+    ["ยอดรวม (บาท)", p.total],
+    ["จ่ายครบแล้ว (ชุด)", p.fullN],
+    ["ยอดครบ รอสลิป (ชุด)", p.waitN],
+    ["จ่ายไม่ครบ (ชุด)", p.partialN],
+    ["ยังไม่จ่าย (ชุด)", p.noneN],
+    ["ยอดที่รับแล้ว (บาท)", p.paidAmt],
+    ["ยอดค้าง (บาท)", p.dueAmt],
+    ["ยังไม่จ่ายครบ", p.notFull.join(", ")]
   ];
 
   const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
-  ws1["!cols"] = [{wch:10},{wch:28},{wch:16},{wch:14},{wch:14},{wch:16},{wch:12}];
-  ws1["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:6} }];
+  ws1["!cols"] = [{wch:10},{wch:28},{wch:16},{wch:14},{wch:12},{wch:14},{wch:16},{wch:18}];
+  ws1["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:7} }];
   const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
-  ws2["!cols"] = [{wch:28},{wch:16},{wch:18}];
+  ws2["!cols"] = [{wch:30},{wch:16},{wch:18}];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws1, "รายชื่อ");

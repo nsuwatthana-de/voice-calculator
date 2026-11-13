@@ -49,6 +49,8 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
 #sheet .qr-box{margin-top:18px;text-align:center}
 #sheet .qr-box img{width:200px;max-width:50%;height:auto}
 #sheet .qr-box p{margin:6px 0 0;font-size:15px}
+.card h3{font-size:1rem;margin:16px 0 6px}
+img.chart{display:block;width:100%;max-width:640px;height:auto;margin:8px auto;border-radius:10px}
 .btn{font:inherit;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
 .btn:disabled{opacity:.6;cursor:wait}
 .btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:600}
@@ -97,9 +99,20 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
       <div><label for="i-teacher">ชื่อครูผู้สั่ง</label><input id="i-teacher" data-k="teacher" placeholder="เช่น ครูสมศรี"></div>
       <div><label for="i-school">โรงเรียน</label><input id="i-school" data-k="school" placeholder="ชื่อโรงเรียน"></div>
       <div><label for="i-klass">ชั้น / ห้อง</label><input id="i-klass" data-k="klass" placeholder="เช่น ม.1/2"></div>
-      <div><label for="i-shop">ถึงร้าน</label><input id="i-shop" data-k="shop" placeholder="ชื่อร้านที่สั่ง"></div>
+      <div><label for="i-shop">ถึงร้าน</label><input id="i-shop" data-k="shop" placeholder="เช่น DS Garment"></div>
       <div><label for="i-date">วันที่สั่ง</label><input id="i-date" type="date" data-k="date"></div>
     </div>
+  </section>
+
+  <section class="card">
+    <h2>ชุดที่สั่งทำได้</h2>
+    <p class="note">แบบชุดกีฬาโรงเรียนหนองหานวิทยา (เสื้อโปโลและกางเกงฟุตบอล) พร้อมตารางไซส์จากร้าน DS Garment</p>
+    <img class="chart" src="uniform-assets/design.jpg" alt="แบบชุดกีฬาโรงเรียนหนองหานวิทยา" loading="lazy">
+    <h3>ตารางไซส์เสื้อผู้ใหญ่ (ใส่ได้ทั้งชายและหญิง)</h3>
+    <img class="chart" src="uniform-assets/size-shirt.jpg" alt="ตารางไซส์เสื้อผู้ใหญ่" loading="lazy">
+    <h3>ตารางไซส์กางเกงฟุตบอล</h3>
+    <img class="chart" src="uniform-assets/size-shorts.jpg" alt="ตารางไซส์กางเกงฟุตบอล" loading="lazy">
+    <p class="note">ขนาดอาจคลาดเคลื่อนได้ ±0.5–1 นิ้ว จากเนื้อผ้าและการตัดเย็บ</p>
   </section>
 
   <section class="card">
@@ -113,7 +126,7 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
       <label for="bulkText">ใส่ทีละบรรทัด: ชื่อ, ขนาดเสื้อ, ขนาดกางเกง, ชื่อหลังเสื้อ, เบอร์ (สองช่องหลังไม่ต้องใส่ก็ได้)</label>
       <textarea id="bulkText" rows="5" placeholder="สมชาย ใจดี, M, L, SOMCHAI, 7&#10;สมหญิง รักเรียน, S, S"></textarea>
       <div class="btns"><button class="btn primary" id="bulkApply">เพิ่มรายการ</button></div>
-      <p class="note">ขนาดที่ใช้ได้: XS, S, M, L, XL, 2XL, 3XL, 4XL</p>
+      <p class="note">ขนาดเสื้อ: SSS, SS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL · ขนาดกางเกง: SS, S, M, L, XL</p>
     </div>
     <div id="warn"></div>
   </section>
@@ -151,7 +164,10 @@ input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(
 </div>
 
 <script>
-const SIZES = ["XS","S","M","L","XL","2XL","3XL","4XL"];
+// ไซส์ตามตาราง DS Garment: เสื้อผู้ใหญ่ SSS–5XL, กางเกงฟุตบอล SS–XL
+const SHIRT_SIZES = ["SSS","SS","S","M","L","XL","2XL","3XL","4XL","5XL"];
+const PANTS_SIZES = ["SS","S","M","L","XL"];
+const ALL_SIZES = ["SSS","SS","S","M","L","XL","2XL","3XL","4XL","5XL"];
 const KEY = "uniform-order-v1";
 const $ = id => document.getElementById(id);
 
@@ -191,9 +207,10 @@ function thaiDate(v){
   return new Date(y, m-1, d).toLocaleDateString("th-TH", {year:"numeric", month:"long", day:"numeric"});
 }
 
-function sizeOptions(selected){
+function sizeOptions(selected, list){
+  const opts = selected && !list.includes(selected) ? [...list, selected] : list;
   return `<option value="">เลือก</option>` +
-    SIZES.map(s => `<option value="${s}"${s===selected?" selected":""}>${s}</option>`).join("");
+    opts.map(s => `<option value="${s}"${s===selected?" selected":""}>${s}</option>`).join("");
 }
 
 function renderRows(){
@@ -212,8 +229,8 @@ function renderRows(){
         <input id="m-${i}" data-f="num" inputmode="numeric" value="${esc(st.num)}" placeholder="เช่น 7">
       </div>
       <div class="sel">
-        <div><label for="s-${i}">เสื้อกีฬา</label><select id="s-${i}" data-f="shirt">${sizeOptions(st.shirt)}</select></div>
-        <div><label for="p-${i}">กางเกงกีฬา</label><select id="p-${i}" data-f="pants">${sizeOptions(st.pants)}</select></div>
+        <div><label for="s-${i}">เสื้อกีฬา</label><select id="s-${i}" data-f="shirt">${sizeOptions(st.shirt, SHIRT_SIZES)}</select></div>
+        <div><label for="p-${i}">กางเกงกีฬา</label><select id="p-${i}" data-f="pants">${sizeOptions(st.pants, PANTS_SIZES)}</select></div>
         <div class="del"><label>ลบ</label><button class="btn danger" data-del="${i}" aria-label="ลบรายการนี้">ลบ</button></div>
       </div>
     </div>`).join("");
@@ -224,7 +241,7 @@ function countSize(key, size){
 }
 
 function summaryHTML(){
-  const rows = SIZES.map(sz => {
+  const rows = ALL_SIZES.map(sz => {
     const sh = countSize("shirt", sz), pa = countSize("pants", sz);
     return `<tr><td>${sz}</td><td class="c">${sh}</td><td class="c">${pa}</td></tr>`;
   }).join("");
@@ -330,9 +347,9 @@ $("bulkToggle").addEventListener("click", () => {
   if (!box.hidden) $("bulkText").focus();
 });
 
-function normSize(v){
+function normSize(v, list){
   const u = String(v ?? "").toUpperCase().replace(/\s+/g, "");
-  return SIZES.includes(u) ? u : "";
+  return list.includes(u) ? u : "";
 }
 
 $("bulkApply").addEventListener("click", () => {
@@ -341,7 +358,7 @@ $("bulkApply").addEventListener("click", () => {
   for (const line of lines){
     const [name = "", shirt = "", pants = "", back = "", num = ""] = line.split(/[,\t]/).map(p => p.trim());
     if (!name) continue;
-    added.push({ name, shirt: normSize(shirt), pants: normSize(pants), back: back.toUpperCase(), num });
+    added.push({ name, shirt: normSize(shirt, SHIRT_SIZES), pants: normSize(pants, PANTS_SIZES), back: back.toUpperCase(), num });
   }
   if (!added.length){
     $("status").textContent = "ไม่พบรายการที่จะเพิ่ม ลองใส่แบบ: ชื่อ, ขนาดเสื้อ, ขนาดกางเกง";
@@ -402,7 +419,7 @@ $("xlsxBtn").addEventListener("click", () => {
   ];
   const sheet2 = [
     ["ขนาด", "เสื้อกีฬา (ตัว)", "กางเกงกีฬา (ตัว)"],
-    ...SIZES.map(sz => [sz, countSize("shirt", sz), countSize("pants", sz)]),
+    ...ALL_SIZES.map(sz => [sz, countSize("shirt", sz), countSize("pants", sz)]),
     ["รวม", list.filter(s => s.shirt).length, list.filter(s => s.pants).length]
   ];
 

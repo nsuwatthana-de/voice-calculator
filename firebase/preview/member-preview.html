@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>หน้าสมาชิก (ตัวอย่าง)</title>
+<script src="qrcode-generator.min.js"></script>
+<style>
+:root{--bg:#f5f8ff;--card:#fff;--text:#172b52;--muted:#6b7b99;--line:#dce5f3;--accent:#ff299b;--navy:#102b61;--gradient:linear-gradient(120deg,#ff299b,#19bfff);--ok:#1b7f3b;--ok-bg:#e6f8ee;--warn:#8a4b00;--warn-bg:#fff4e5;--bad:#c62828;--bad-bg:#fdeaea}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Kanit,system-ui,sans-serif;font-size:16px;line-height:1.5}
+.topbar{background:var(--card);box-shadow:0 3px 18px #193c7010;padding:12px 16px}
+.logo{font-size:22px;font-weight:800;font-style:italic;color:var(--navy)}
+.logo span{color:var(--accent)}
+.wrap{max-width:560px;margin:0 auto;padding:14px}
+.tag{display:inline-block;background:var(--warn-bg);color:var(--warn);padding:4px 12px;border-radius:20px;font-size:.85rem;font-weight:700;margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 5px 20px #193c7010}
+h2{font-size:1.05rem;margin:0 0 10px;color:var(--navy)}
+.muted{color:var(--muted);font-size:.9rem}
+label{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin:8px 0 4px}
+input,select{width:100%;font:inherit;font-size:16px;min-height:46px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{font:inherit;font-weight:700;min-height:46px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--text);width:100%;cursor:pointer}
+.btn.primary{background:var(--gradient);color:#fff;border:0}
+.pick{display:grid;gap:8px}
+.pick button{text-align:left;display:flex;justify-content:space-between;align-items:center}
+.badge{padding:4px 10px;border-radius:20px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.badge.full{background:var(--ok-bg);color:var(--ok)}
+.badge.wait{background:var(--warn-bg);color:var(--warn)}
+.badge.none{background:var(--bad-bg);color:var(--bad)}
+.qr{text-align:center;margin-top:12px}
+.qr img{width:240px;max-width:100%;height:auto;background:#fff;padding:8px;border-radius:12px;border:1px solid var(--line)}
+.amount{font-size:1.4rem;font-weight:800;color:var(--navy)}
+.hist{list-style:none;margin:0;padding:0;font-size:.92rem}
+.hist li{padding:8px 0;border-bottom:1px solid var(--line)}
+.hist li:last-child{border-bottom:0}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="logo">ชุดกีฬา<span>ของฉัน</span></div></header>
+<main class="wrap">
+  <span class="tag">ตัวอย่าง: ชื่อ เบอร์ และยอดเป็นข้อมูลสมมติ</span>
+
+  <!-- หน้าที่ 1: เลือกชื่อ -->
+  <section class="card" id="screenPick">
+    <h2>เลือกชื่อของคุณ</h2>
+    <div class="pick" id="pickList"></div>
+  </section>
+
+  <!-- หน้าที่ 2: ข้อมูลของคน -->
+  <div id="screenMe" class="hidden">
+    <button class="btn" id="back" style="width:auto;margin-bottom:12px">← เลือกชื่อใหม่</button>
+
+    <section class="card">
+      <h2>ข้อมูลของฉัน</h2>
+      <div class="grid">
+        <div><label>ชื่อ-สกุล</label><input id="fName"></div>
+        <div><label>ชื่อหลังเสื้อ</label><input id="fBack"></div>
+        <div><label>เบอร์หลังเสื้อ</label><input id="fNum"></div>
+        <div><label>เบอร์โทรติดต่อ</label><input id="fPhone" placeholder="08x-xxx-xxxx"></div>
+        <div><label>ไซส์เสื้อ</label><select id="fShirt"></select></div>
+        <div><label>ไซส์กางเกง</label><select id="fPants"></select></div>
+      </div>
+      <p class="muted">แก้ไขได้ตลอด ระบบจะบันทึกและแจ้งครูอัตโนมัติ</p>
+    </section>
+
+    <section class="card">
+      <h2>จ่ายเงิน</h2>
+      <p><span class="badge" id="payBadge"></span></p>
+      <p class="muted" style="margin:8px 0 0">ยอดที่ต้องจ่าย</p>
+      <p class="amount" id="amountText"></p>
+      <div class="qr">
+        <p class="muted" style="margin:0 0 6px">สแกน QR พร้อมเพย์ในแอปธนาคาร (ยอดตั้งไว้แล้ว)</p>
+        <img id="qrImg" alt="QR พร้อมเพย์">
+        <p class="muted" id="ppId" style="margin:6px 0 0"></p>
+        <button class="btn" id="saveQr" style="margin-top:10px">บันทึกรูป QR</button>
+        <button class="btn" id="copyPp" style="margin-top:8px">คัดลอกเบอร์พร้อมเพย์</button>
+        <p class="muted" id="copyMsg" style="margin:6px 0 0;min-height:1.2em"></p>
+      </div>
+      <div style="display:grid;gap:10px;margin-top:14px">
+        <button class="btn">แนบสลิปที่โอนแล้ว</button>
+        <button class="btn primary" id="markPaid">แจ้งจ่ายแล้ว</button>
+      </div>
+      <p class="muted">ครูจะตรวจสลิปและยืนยันการจ่ายอีกครั้ง</p>
+    </section>
+
+    <section class="card">
+      <h2>ประวัติการแก้ไข</h2>
+      <ul class="hist" id="histList"></ul>
+    </section>
+  </div>
+</main>
+
+<script>
+// ตัวอย่างข้อมูลสมมติทั้งหมด
+const PROMPTPAY_ID = "0949891125"; // เลขพร้อมเพย์ของบัญชีรับเงิน
+const PRICE = 290;
+const SIZES_SHIRT = ["SSS","SS","S","M","L","XL","2XL","3XL","4XL","5XL"];
+const SIZES_PANTS = ["SS","S","M","L","XL"];
+const LABEL = { full:"จ่ายครบแล้ว", wait:"ยอดครบ รอตรวจสลิป", none:"ยังไม่จ่าย" };
+
+let members = Array.from({length: 21}, (_, i) => ({
+  id: "m" + (i+1), name: "ตัวอย่าง " + String(i+1).padStart(2,"0"), back: "EXAMPLE" + (i+1),
+  num: String(i+1), shirt: "L", pants: "L", phone: "", paid: false, slip: false,
+  history: [{ text: "สร้างรายการ", at: "14 พ.ย. 09:00" }]
+}));
+let me = null;
+
+// สร้างสตริงพร้อมเพย์ (EMVCo) พร้อม CRC16 และยอดเงิน
+function tlv(id, v){ return id + String(v.length).padStart(2,"0") + v; }
+function crc16(s){
+  let crc = 0xFFFF;
+  for (let i = 0; i < s.length; i++){
+    crc ^= s.charCodeAt(i) << 8;
+    for (let b = 0; b < 8; b++){
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+function promptpayPayload(id, amount){
+  const target = /^0\d{9}$/.test(id) ? "0066" + id.slice(1) : id;
+  const merchant = tlv("00","A000000677010111") + tlv("01", target);
+  let p = tlv("00","01") + tlv("01","12") + tlv("29", merchant) + tlv("53","764") +
+          tlv("54", Number(amount).toFixed(2)) + tlv("58","TH");
+  p += "6304";
+  return p + crc16(p);
+}
+function qrDataUrl(text){
+  const q = qrcode(0, "M");
+  q.addData(text);
+  q.make();
+  return q.createDataURL(6, 2);
+}
+
+function renderPick(){
+  document.getElementById("pickList").innerHTML = members.map(m => {
+    const st = payStatus(m);
+    return `<button class="btn" data-id="${m.id}"><span>${m.name} · เสื้อ ${m.shirt} · กางเกง ${m.pants}</span><span class="badge ${st}">${LABEL[st]}</span></button>`;
+  }).join("");
+}
+function payStatus(m){
+  if (m.paid && m.slip) return "full";
+  if (m.paid) return "wait";
+  return "none";
+}
+function fillSelect(el, list, val){
+  el.innerHTML = list.map(s => `<option${s===val?" selected":""}>${s}</option>`).join("");
+}
+function renderMe(){
+  const m = me;
+  document.getElementById("fName").value = m.name;
+  document.getElementById("fBack").value = m.back;
+  document.getElementById("fNum").value = m.num;
+  document.getElementById("fPhone").value = m.phone;
+  fillSelect(document.getElementById("fShirt"), SIZES_SHIRT, m.shirt);
+  fillSelect(document.getElementById("fPants"), SIZES_PANTS, m.pants);
+  const st = payStatus(m);
+  const badge = document.getElementById("payBadge");
+  badge.className = "badge " + st;
+  badge.textContent = LABEL[st];
+  document.getElementById("amountText").textContent = PRICE.toLocaleString("th-TH") + " บาท";
+  document.getElementById("qrImg").src = qrDataUrl(promptpayPayload(PROMPTPAY_ID, PRICE));
+  document.getElementById("ppId").textContent = "พร้อมเพย์: " + PROMPTPAY_ID;
+  document.getElementById("copyMsg").textContent = "";
+  document.getElementById("markPaid").disabled = m.paid;
+  document.getElementById("markPaid").textContent = m.paid ? "แจ้งจ่ายแล้ว" : "แจ้งจ่ายแล้ว";
+  document.getElementById("histList").innerHTML = m.history.map(h =>
+    `<li>${h.text} <span class="muted">· ${h.at}</span></li>`).join("");
+}
+function log(text){
+  me.history.push({ text, at: new Date().toLocaleString("th-TH", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}) });
+}
+function bindEdits(){
+  const map = { fName:"name", fBack:"back", fNum:"num", fPhone:"phone", fShirt:"shirt", fPants:"pants" };
+  Object.entries(map).forEach(([id, key]) => {
+    document.getElementById(id).addEventListener("change", e => {
+      if (me[key] !== e.target.value){ log(`แก้ไข ${key} เป็น ${e.target.value}`); me[key] = e.target.value; renderMe(); }
+    });
+  });
+}
+
+document.getElementById("pickList").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-id]");
+  if (!btn) return;
+  me = members.find(m => m.id === btn.dataset.id);
+  document.getElementById("screenPick").classList.add("hidden");
+  document.getElementById("screenMe").classList.remove("hidden");
+  renderMe();
+  window.scrollTo(0, 0);
+});
+document.getElementById("back").addEventListener("click", () => {
+  document.getElementById("screenMe").classList.add("hidden");
+  document.getElementById("screenPick").classList.remove("hidden");
+  renderPick();
+});
+document.getElementById("markPaid").addEventListener("click", () => {
+  me.paid = true;
+  log("แจ้งจ่ายแล้ว");
+  renderMe();
+});
+
+document.getElementById("copyPp").addEventListener("click", async () => {
+  const msg = document.getElementById("copyMsg");
+  try{
+    await navigator.clipboard.writeText(PROMPTPAY_ID);
+    msg.textContent = "คัดลอกเบอร์ " + PROMPTPAY_ID + " แล้ว นำไปวางในแอปธนาคารได้เลย";
+  }catch(e){
+    msg.textContent = "คัดลอกไม่ได้ เบอร์พร้อมเพย์คือ " + PROMPTPAY_ID;
+  }
+});
+
+// บันทึกรูป QR เป็นไฟล์: ใช้ความสามารถ downloads ถ้ามี ไม่งั้นแสดงรูปให้กดค้างบันทึก
+async function saveQrImage(){
+  const src = document.getElementById("qrImg").src;
+  const msg = document.getElementById("copyMsg");
+  const blob = await (await fetch(src)).blob();
+  let dl = null;
+  try{ dl = window.claude ? await window.claude.use("downloads") : null; }catch(e){ dl = null; }
+  if (dl){
+    try{
+      await dl.save({ filename: "QR-พร้อมเพย์-" + PROMPTPAY_ID + ".gif", data: blob });
+      msg.textContent = "บันทึกรูป QR แล้ว";
+      return;
+    }catch(e){
+      if (e && e.code === "declined"){ msg.textContent = "ยกเลิกการบันทึก"; return; }
+    }
+  }
+  let box = document.getElementById("qrView");
+  if (!box){
+    box = document.createElement("div");
+    box.id = "qrView";
+    box.style.cssText = "position:fixed;inset:0;background:#000d;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px";
+    box.innerHTML = '<p style="color:#fff;margin:0 0 12px">กดค้างที่รูป แล้วเลือก "บันทึกรูปภาพ"</p><img src="' + src + '" style="width:80%;max-width:360px;background:#fff;border-radius:12px;padding:8px"><button id="qrViewClose" class="btn" style="margin-top:14px;width:auto">ปิด</button>';
+    document.body.appendChild(box);
+    document.getElementById("qrViewClose").addEventListener("click", () => box.remove());
+  }
+  msg.textContent = "";
+}
+document.getElementById("saveQr").addEventListener("click", saveQrImage);
+
+bindEdits();
+renderPick();
+</script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#1e5eff">
+<title>สรุปการสั่งชุดกีฬา</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* โทนสว่างเสมอ ไม่ขึ้นกับการตั้งค่าโหมดมืดของเครื่อง */
+:root{
+  color-scheme:light;
+  --bg:#f5f8ff; --card:#ffffff; --text:#172b52; --muted:#5f6f8f; --line:#dce5f3; --soft:#f7f9fd;
+  --accent:#ff299b; --blue:#16bafa; --navy:#102b61; --gradient:linear-gradient(120deg,#ff299b,#19bfff);
+  --ok:#1b7f3b; --ok-bg:#e6f8ee; --warn:#8a4b00; --warn-bg:#fff4e5; --bad:#c62828; --bad-bg:#fdeaea; --neutral-bg:#eef2f9;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Kanit,system-ui,sans-serif;font-size:16px;line-height:1.5}
+.topbar{background:var(--card);box-shadow:0 3px 18px #193c7010;padding:14px 16px}
+.logo{font-size:24px;font-weight:800;font-style:italic;color:var(--navy);line-height:1;max-width:960px;margin:0 auto}
+.logo span{color:var(--accent);margin-left:4px}
+.logo small{display:block;font-size:10px;font-style:normal;font-weight:500;letter-spacing:2px;color:var(--blue);margin-top:4px}
+.wrap{max-width:960px;margin:0 auto;padding:16px}
+.live{color:var(--muted);font-size:.9rem;margin:4px 0 14px}
+.live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;vertical-align:middle}
+
+/* การ์ดใหญ่ของแต่ละส่วน */
+.block{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:20px;box-shadow:0 5px 20px #193c7010}
+.block-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:14px}
+.block-head h2{margin:0;font-size:1.25rem;color:var(--navy)}
+.block-head .tag{background:var(--gradient);color:#fff;border-radius:20px;padding:2px 12px;font-size:.85rem;font-weight:600}
+
+/* หัวข้อย่อยในแต่ละส่วน */
+.section{margin-top:18px}
+.section:first-of-type{margin-top:0}
+.section h3{font-size:1.02rem;margin:0 0 10px;color:var(--navy);display:flex;align-items:center;gap:8px}
+.section h3::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--gradient);display:inline-block}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:700px){ .grid{grid-template-columns:repeat(4,1fr)} }
+.stat{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--soft)}
+.stat .k{font-size:.85rem;color:var(--muted)}
+.stat .v{font-size:1.35rem;font-weight:800;color:var(--navy);line-height:1.2;word-break:break-word}
+.stat .v small{font-size:.85rem;font-weight:600;color:var(--muted)}
+.stat.ok{background:var(--ok-bg);border-color:#bfe5cc}
+.stat.ok .v{color:var(--ok)}
+.stat.bad{background:var(--bad-bg);border-color:#f2c4c4}
+.stat.bad .v{color:var(--bad)}
+.stat.warn{background:var(--warn-bg);border-color:#f0d6a8}
+.stat.warn .v{color:var(--warn)}
+
+.info{display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+@media (min-width:600px){ .info{grid-template-columns:1fr 1fr} }
+.info div{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--card)}
+.info div:nth-child(odd){border-right:0}
+@media (min-width:600px){ .info div:nth-child(odd){border-right:1px solid var(--line)} }
+.info b{display:block;font-size:.8rem;color:var(--muted);font-weight:600}
+
+table{width:100%;border-collapse:collapse;font-size:.95rem;background:var(--card)}
+th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:middle}
+th{background:var(--soft);color:var(--navy);font-weight:700;font-size:.88rem}
+td.c,th.c{text-align:center}
+tfoot td{font-weight:700;background:var(--soft)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.badge.full{background:var(--ok-bg);color:var(--ok)}
+.badge.wait,.badge.partial{background:var(--warn-bg);color:var(--warn)}
+.badge.none{background:var(--bad-bg);color:var(--bad)}
+.badge.incomplete{background:var(--neutral-bg);color:var(--muted)}
+
+/* รายชื่อสมาชิก: บนจอกว้างเป็นตาราง บนมือถือแสดงเป็นการ์ดต่อคน ไม่ถูกตัดคอลัมน์ */
+.mtbl{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+@media (max-width:700px){
+  .mtbl thead{display:none}
+  .mtbl,.mtbl tbody{display:block;width:100%}
+  .mtbl tr{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .mtbl tr:last-child{border-bottom:0}
+  .mtbl td{border:0;padding:0;display:flex;justify-content:space-between;gap:8px;font-size:.92rem;text-align:left}
+  .mtbl td::before{content:attr(data-label);color:var(--muted);font-size:.8rem;font-weight:600;white-space:nowrap;margin-right:6px}
+  .mtbl td.num{display:none}
+  .mtbl td.nm{grid-column:1/-1;justify-content:flex-start;font-weight:700;font-size:1.05rem;color:var(--navy)}
+  .mtbl td.nm::before{content:none}
+  .mtbl td[data-label="การจ่าย"]{grid-column:1/-1}
+}
+.list{margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--soft);list-style:none}
+.list li{padding:4px 0;border-bottom:1px dashed var(--line)}
+.list li:last-child{border-bottom:0}
+.empty{text-align:center;color:var(--muted);padding:18px;border:1px dashed var(--line);border-radius:14px;background:var(--soft)}
+.note{color:var(--muted);font-size:.88rem;margin:8px 0 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">ชุดกีฬา<span>สรุป</span><small>อัปเดตอัตโนมัติจากหน้าสั่งชุด</small></div>
+</header>
+<main class="wrap">
+  <p class="live"><i></i><span id="liveText">กำลังโหลด...</span></p>
+  <div id="content"></div>
+</main>
+
+<script>
+const KEY = "uniform-order-v2";
+const OLD_KEY = "uniform-order-v1";
+const ALL_SIZES = ["SSS","SS","S","M","L","XL","2XL","3XL","4XL","5XL"];
+const STATUS_LABEL = { full:"จ่ายครบแล้ว", wait:"ยอดครบ รอสลิป", partial:"จ่ายไม่ครบ", none:"ยังไม่จ่าย", incomplete:"กรอกไม่ครบ" };
+
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function baht(n){ return Number(n).toLocaleString("th-TH") + " บาท"; }
+function thaiDate(v){
+  if (!v) return "-";
+  const [y,m,d] = v.split("-").map(Number);
+  if (!y || !m || !d) return v;
+  return new Date(y, m-1, d).toLocaleDateString("th-TH", {year:"numeric", month:"long", day:"numeric"});
+}
+
+// อ่านข้อมูลทุกออเดอร์จากเบราว์เซอร์นี้ ถ้าไม่มีก็ใช้ข้อมูลของเวอร์ชันเดิม
+function loadOrders(){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.orders) && s.orders.length) return s.orders;
+  }catch(e){}
+  try{
+    const v1 = JSON.parse(localStorage.getItem(OLD_KEY));
+    if (v1 && v1.info && Array.isArray(v1.students)){
+      return [{ id:"o1", name:"", info:v1.info, students:v1.students, qr:"" }];
+    }
+  }catch(e){}
+  return [];
+}
+
+function isFilled(s){ return (s.name || "").trim() !== "" || s.shirt || s.pants; }
+function isComplete(s){ return (s.name || "").trim() !== "" && s.shirt && s.pants; }
+function paidOf(s, price){
+  if (s.cash) return price;
+  if (s.amount !== undefined && s.amount !== ""){
+    return Math.min(Math.max(Number(s.amount) || 0, 0), price);
+  }
+  return s.paid ? price : 0;
+}
+function payStatus(s, price){
+  if (!isComplete(s)) return "incomplete";
+  const p = paidOf(s, price);
+  if (price > 0 && p >= price) return (s.slip || s.cash) ? "full" : "wait";
+  if (p > 0) return "partial";
+  return "none";
+}
+
+function summarize(o){
+  const price = Number(o.info.price) || 0;
+  const list = o.students.filter(isFilled);
+  const comp = list.filter(isComplete);
+  let paidAmt = 0;
+  const count = { full:0, wait:0, partial:0, none:0 };
+  const notFull = [];
+  for (const s of comp){
+    const p = paidOf(s, price);
+    paidAmt += p;
+    const st = payStatus(s, price);
+    count[st]++;
+    if (st !== "full") notFull.push({ name: s.name.trim(), status: st, remaining: price - p });
+  }
+  return {
+    price, list, comp, count, notFull,
+    sizes: ALL_SIZES.map(sz => ({
+      sz,
+      shirt: list.filter(s => s.shirt === sz).length,
+      pants: list.filter(s => s.pants === sz).length
+    })),
+    sets: comp.length,
+    total: comp.length * price,
+    paidAmt,
+    dueAmt: comp.length * price - paidAmt,
+    incomplete: list.length - comp.length,
+    shirtTotal: list.filter(s => s.shirt).length,
+    pantsTotal: list.filter(s => s.pants).length
+  };
+}
+
+function orderSection(o, idx){
+  const S = summarize(o);
+  const info = o.info;
+  const title = o.name || `ออเดอร์ที่ ${idx+1}`;
+
+  const money = S.price
+    ? `<div class="stat"><div class="k">ยอดรวมของออเดอร์</div><div class="v">${baht(S.total)}</div></div>
+       <div class="stat ok"><div class="k">รับแล้ว</div><div class="v">${baht(S.paidAmt)}</div></div>
+       <div class="stat bad"><div class="k">ค้างจ่าย</div><div class="v">${baht(S.dueAmt)}</div></div>`
+    : `<div class="stat warn"><div class="k">ราคาต่อชุด</div><div class="v">ยังไม่ได้ใส่</div></div>`;
+
+  const notFullList = S.notFull.length
+    ? `<ul class="list">${S.notFull.map(x => {
+        const label = x.status === "wait" ? "ยอดครบ รอสลิป" : x.status === "partial" ? `จ่ายไม่ครบ ค้าง ${baht(x.remaining)}` : "ยังไม่จ่าย";
+        return `<li>${esc(x.name)} <span class="badge ${x.status}">${label}</span></li>`;
+      }).join("")}</ul>`
+    : `<div class="empty">จ่ายครบทุกชุดแล้ว</div>`;
+
+  const members = S.list.length
+    ? `<table class="mtbl">
+        <thead><tr><th>ลำดับ</th><th>ชื่อ-สกุล</th><th>ชื่อหลังเสื้อ</th><th class="c">เบอร์</th><th class="c">ไซส์เสื้อ</th><th class="c">ไซส์กางเกง</th><th>ยอดที่โอน</th><th>การจ่าย</th></tr></thead>
+        <tbody>${S.list.map((s, i) => {
+          const st = payStatus(s, S.price);
+          const amt = paidOf(s, S.price);
+          return `<tr>
+            <td data-label="ลำดับ" class="num">${i+1}</td>
+            <td data-label="ชื่อ-สกุล" class="nm">${esc(s.name) || "-"}</td>
+            <td data-label="ชื่อหลังเสื้อ">${esc(s.back) || "-"}</td>
+            <td data-label="เบอร์" class="c">${esc(s.num) || "-"}</td>
+            <td data-label="ไซส์เสื้อ" class="c">${s.shirt || "-"}</td>
+            <td data-label="ไซส์กางเกง" class="c">${s.pants || "-"}</td>
+            <td data-label="ยอดที่โอน">${S.price ? baht(amt) : "-"}</td>
+            <td data-label="การจ่าย"><span class="badge ${st}">${STATUS_LABEL[st]}</span></td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>`
+    : `<div class="empty">ยังไม่มีรายชื่อสมาชิก</div>`;
+
+  const sizes = `<div class="scroll"><table>
+      <thead><tr><th>ไซส์</th><th class="c">เสื้อ (ตัว)</th><th class="c">กางเกง (ตัว)</th></tr></thead>
+      <tbody>${S.sizes.map(r => `<tr><td>${r.sz}</td><td class="c">${r.shirt}</td><td class="c">${r.pants}</td></tr>`).join("")}</tbody>
+      <tfoot><tr><td>รวม</td><td class="c">${S.shirtTotal}</td><td class="c">${S.pantsTotal}</td></tr></tfoot>
+    </table></div>`;
+
+  return `
+  <section class="block">
+    <div class="block-head">
+      <h2>${esc(title)}</h2>
+      <span class="tag">${S.list.length} สมาชิก · ${S.sets} ชุด</span>
+    </div>
+
+    <div class="section">
+      <h3>1. ข้อมูลการสั่ง</h3>
+      <div class="info">
+        <div><b>ทีม / โรงเรียน</b>${esc(info.school) || "-"}</div>
+        <div><b>ผู้สั่ง</b>${esc(info.teacher) || "-"}</div>
+        <div><b>ชั้น / รุ่น</b>${esc(info.klass) || "-"}</div>
+        <div><b>ถึงร้าน</b>${esc(info.shop) || "-"}</div>
+        <div><b>วันที่สั่ง</b>${thaiDate(info.date)}</div>
+        <div><b>ราคาต่อชุด</b>${S.price ? baht(S.price) : "-"}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>2. ยอดเงิน</h3>
+      <div class="grid">
+        <div class="stat"><div class="k">จำนวนชุดที่ครบ</div><div class="v">${S.sets} <small>ชุด</small></div></div>
+        <div class="stat ok"><div class="k">จ่ายครบแล้ว</div><div class="v">${S.count.full} <small>ชุด</small></div></div>
+        <div class="stat warn"><div class="k">ยังไม่ครบ</div><div class="v">${S.sets - S.count.full} <small>ชุด</small></div></div>
+        ${money}
+      </div>
+      ${S.incomplete > 0 ? `<p class="note">มี ${S.incomplete} คนที่กรอกข้อมูลไม่ครบ จึงยังไม่นับเป็นชุด</p>` : ""}
+    </div>
+
+    <div class="section">
+      <h3>3. ค้างจ่าย / ยังไม่ครบ</h3>
+      ${notFullList}
+    </div>
+
+    <div class="section">
+      <h3>4. จำนวนที่ต้องสั่งตามไซส์</h3>
+      ${sizes}
+    </div>
+
+    <div class="section">
+      <h3>5. รายชื่อสมาชิกทั้งหมด</h3>
+      ${members}
+    </div>
+  </section>`;
+}
+
+function render(){
+  const orders = loadOrders();
+  if (!orders.length){
+    $("liveText").textContent = "ยังไม่มีข้อมูลในเบราว์เซอร์นี้ เปิดหน้าสั่งชุดแล้วกรอกข้อมูลก่อน";
+    $("content").innerHTML = `<div class="empty">ยังไม่มีข้อมูลออเดอร์</div>`;
+    return;
+  }
+
+  // รวมทุกออเดอร์
+  const all = orders.map(summarize);
+  const sum = k => all.reduce((a, s) => a + s[k], 0);
+  const totals = {
+    orders: orders.length,
+    members: all.reduce((a, s) => a + s.list.length, 0),
+    sets: sum("sets"),
+    full: all.reduce((a, s) => a + s.count.full, 0),
+    total: sum("total"),
+    paid: sum("paidAmt"),
+    due: sum("dueAmt")
+  };
+
+  $("content").innerHTML = `
+  <section class="block">
+    <div class="block-head"><h2>ภาพรวมทุกออเดอร์</h2><span class="tag">${totals.orders} ออเดอร์</span></div>
+    <div class="grid">
+      <div class="stat"><div class="k">สมาชิกทั้งหมด</div><div class="v">${totals.members} <small>คน</small></div></div>
+      <div class="stat"><div class="k">จำนวนชุดทั้งหมด</div><div class="v">${totals.sets} <small>ชุด</small></div></div>
+      <div class="stat ok"><div class="k">จ่ายครบแล้ว</div><div class="v">${totals.full} <small>ชุด</small></div></div>
+      <div class="stat"><div class="k">ยอดรวมทั้งหมด</div><div class="v">${baht(totals.total)}</div></div>
+      <div class="stat ok"><div class="k">รับแล้วทั้งหมด</div><div class="v">${baht(totals.paid)}</div></div>
+      <div class="stat bad"><div class="k">ค้างจ่ายทั้งหมด</div><div class="v">${baht(totals.due)}</div></div>
+    </div>
+  </section>
+  ${orders.map(orderSection).join("")}`;
+
+  $("liveText").textContent = `อัปเดตล่าสุด ${new Date().toLocaleTimeString("th-TH", {hour:"2-digit", minute:"2-digit", second:"2-digit"})}`;
+}
+
+function $(id){ return document.getElementById(id); }
+
+// อัปเดตอัตโนมัติ: เมื่อข้อมูลเปลี่ยน และตรวจซ้ำทุก 3 วินาที
+window.addEventListener("storage", e => { if (e.key === KEY || e.key === OLD_KEY) render(); });
+setInterval(render, 3000);
+render();
+</script>
+</body>
+</html>

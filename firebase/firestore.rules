@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// ผังข้อมูล
+//   orders/{orderId}                      ข้อมูลออเดอร์ (ราคา ร้าน วันที่)
+//   orders/{orderId}/members/{memberId}   สมาชิกแต่ละคน (ไซส์ เบอร์ ยอดโอน สถานะจ่าย)
+//   orders/{orderId}/members/{memberId}/history/{id}   ประวัติการแก้ไข (เพิ่มได้ ลบ/แก้ไม่ได้)
+//   links/{uid}_{orderId}                 ผูกบัญชีผู้ใช้กับสมาชิก (ครูเป็นคนสร้าง)
+//
+// ครู = ผู้ใช้ที่มี custom claim teacher=true (ตั้งด้วย Admin SDK)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isTeacher() {
+      return signedIn() && request.auth.token.teacher == true;
+    }
+    // ครูทุกคน หรือสมาชิกที่ผูกกับออเดอร์นี้แล้ว อ่านข้อมูลออเดอร์ได้
+    function canReadOrder(orderId) {
+      return isTeacher() ||
+        (signedIn() && exists(/databases/$(database)/documents/links/$(request.auth.uid + '_' + orderId)));
+    }
+    // สมาชิกแก้ได้เฉพาะแถวของตัวเอง
+    function isOwnMember(orderId, memberId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/links/$(request.auth.uid + '_' + orderId)) &&
+        get(/databases/$(database)/documents/links/$(request.auth.uid + '_' + orderId)).data.memberId == memberId;
+    }
+    // ฟิลด์ที่สมาชิกแก้เองได้ (ยอดเงิน/ราคา/ข้อมูลอื่นของครูแก้ไม่ได้)
+    function memberEditsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'name', 'back', 'num', 'shirt', 'pants', 'phone', 'slipPath', 'paid', 'paidBy', 'paidAt', 'updatedAt'
+      ]);
+    }
+
+    match /orders/{orderId} {
+      allow read: if canReadOrder(orderId);
+      allow create, update, delete: if isTeacher();
+
+      match /members/{memberId} {
+        allow read: if canReadOrder(orderId);
+        allow create, delete: if isTeacher();
+        allow update: if isTeacher() ||
+          (isOwnMember(orderId, memberId) && memberEditsOnly());
+
+        match /history/{historyId} {
+          allow read: if canReadOrder(orderId);
+          allow create: if canReadOrder(orderId) && request.resource.data.by == request.auth.uid;
+          allow update, delete: if false;
+        }
+      }
+    }
+
+    // ผูกบัญชี: ผู้ใช้อ่านได้เฉพาะลิงก์ของตัวเอง ครูเป็นคนสร้าง/แก้
+    match /links/{linkId} {
+      allow read: if signedIn() && linkId.matches(request.auth.uid + '_.*');
+      allow write: if isTeacher();
+    }
+  }
+}

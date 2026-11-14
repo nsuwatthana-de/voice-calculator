@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// รูปสลิป: slips/{orderId}/{memberId}  (ไม่มีนามสกุลในชื่อไฟล์)
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isTeacher() {
+      return request.auth != null && request.auth.token.teacher == true;
+    }
+
+    match /slips/{orderId}/{memberId} {
+      // ครูและสมาชิกที่ผูกกับออเดอร์นี้อ่านได้
+      allow read: if isTeacher() ||
+        (request.auth != null &&
+         firestore.exists(/databases/(default)/documents/links/$(request.auth.uid + '_' + orderId)));
+
+      // สมาชิกอัปโหลดได้เฉพาะสลิปของตัวเอง เป็นรูปและไม่เกิน 2 MB
+      allow write: if (isTeacher() ||
+          (request.auth != null &&
+           firestore.exists(/databases/(default)/documents/links/$(request.auth.uid + '_' + orderId)) &&
+           firestore.get(/databases/(default)/documents/links/$(request.auth.uid + '_' + orderId)).data.memberId == memberId)) &&
+        request.resource.size < 2 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+    }
+  }
+}

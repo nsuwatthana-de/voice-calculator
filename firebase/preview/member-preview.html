@@ -91,7 +91,7 @@ input,select{width:100%;font:inherit;font-size:16px;min-height:46px;padding:8px 
 
 <script>
 // ตัวอย่างข้อมูลสมมติทั้งหมด
-const PROMPTPAY_ID = "0812345678"; // เลขพร้อมเพย์ตัวอย่าง ต้องเปลี่ยนเป็นของบัญชีรับเงินจริง
+const PROMPTPAY_ID = "0949891125"; // เลขพร้อมเพย์ของบัญชีรับเงิน
 const PRICE = 290;
 const SIZES_SHIRT = ["SSS","SS","S","M","L","XL","2XL","3XL","4XL","5XL"];
 const SIZES_PANTS = ["SS","S","M","L","XL"];
@@ -160,7 +160,7 @@ function renderMe(){
   badge.textContent = LABEL[st];
   document.getElementById("amountText").textContent = PRICE.toLocaleString("th-TH") + " บาท";
   document.getElementById("qrImg").src = qrDataUrl(promptpayPayload(PROMPTPAY_ID, PRICE));
-  document.getElementById("ppId").textContent = "พร้อมเพย์: " + PROMPTPAY_ID + " (ตัวอย่าง)";
+  document.getElementById("ppId").textContent = "พร้อมเพย์: " + PROMPTPAY_ID + "";
   document.getElementById("markPaid").disabled = m.paid;
   document.getElementById("markPaid").textContent = m.paid ? "แจ้งจ่ายแล้ว" : "แจ้งจ่ายแล้ว";
   document.getElementById("histList").innerHTML = m.history.map(h =>

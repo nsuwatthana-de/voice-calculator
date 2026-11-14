@@ -74,9 +74,8 @@ input,select{width:100%;font:inherit;font-size:16px;min-height:46px;padding:8px 
         <p class="muted" style="margin:0 0 6px">สแกน QR พร้อมเพย์ในแอปธนาคาร (ยอดตั้งไว้แล้ว)</p>
         <img id="qrImg" alt="QR พร้อมเพย์">
         <p class="muted" id="ppId" style="margin:6px 0 0"></p>
-        <label style="text-align:left">รหัสพร้อมเพย์ (คัดลอกไปวางในแอปธนาคารได้)</label>
-        <textarea id="ppCode" readonly rows="3" style="width:100%;font:13px monospace;padding:8px;border:1px solid var(--line);border-radius:12px;word-break:break-all"></textarea>
-        <button class="btn" id="copyPp" style="margin-top:8px">คัดลอกรหัสพร้อมเพย์</button>
+        <button class="btn" id="saveQr" style="margin-top:10px">บันทึกรูป QR</button>
+        <button class="btn" id="copyPp" style="margin-top:8px">คัดลอกเบอร์พร้อมเพย์</button>
         <p class="muted" id="copyMsg" style="margin:6px 0 0;min-height:1.2em"></p>
       </div>
       <div style="display:grid;gap:10px;margin-top:14px">
@@ -165,7 +164,6 @@ function renderMe(){
   document.getElementById("amountText").textContent = PRICE.toLocaleString("th-TH") + " บาท";
   document.getElementById("qrImg").src = qrDataUrl(promptpayPayload(PROMPTPAY_ID, PRICE));
   document.getElementById("ppId").textContent = "พร้อมเพย์: " + PROMPTPAY_ID;
-  document.getElementById("ppCode").value = promptpayPayload(PROMPTPAY_ID, PRICE);
   document.getElementById("copyMsg").textContent = "";
   document.getElementById("markPaid").disabled = m.paid;
   document.getElementById("markPaid").textContent = m.paid ? "แจ้งจ่ายแล้ว" : "แจ้งจ่ายแล้ว";
@@ -205,16 +203,43 @@ document.getElementById("markPaid").addEventListener("click", () => {
 });
 
 document.getElementById("copyPp").addEventListener("click", async () => {
-  const box = document.getElementById("ppCode");
   const msg = document.getElementById("copyMsg");
   try{
-    await navigator.clipboard.writeText(box.value);
-    msg.textContent = "คัดลอกแล้ว นำไปวางในแอปธนาคารได้เลย";
+    await navigator.clipboard.writeText(PROMPTPAY_ID);
+    msg.textContent = "คัดลอกเบอร์ " + PROMPTPAY_ID + " แล้ว นำไปวางในแอปธนาคารได้เลย";
   }catch(e){
-    box.focus(); box.select(); box.setSelectionRange(0, box.value.length);
-    msg.textContent = "กดค้างที่กล่องแล้วเลือก คัดลอก";
+    msg.textContent = "คัดลอกไม่ได้ เบอร์พร้อมเพย์คือ " + PROMPTPAY_ID;
   }
 });
+
+// บันทึกรูป QR เป็นไฟล์: ใช้ความสามารถ downloads ถ้ามี ไม่งั้นแสดงรูปให้กดค้างบันทึก
+async function saveQrImage(){
+  const src = document.getElementById("qrImg").src;
+  const msg = document.getElementById("copyMsg");
+  const blob = await (await fetch(src)).blob();
+  let dl = null;
+  try{ dl = window.claude ? await window.claude.use("downloads") : null; }catch(e){ dl = null; }
+  if (dl){
+    try{
+      await dl.save({ filename: "QR-พร้อมเพย์-" + PROMPTPAY_ID + ".gif", data: blob });
+      msg.textContent = "บันทึกรูป QR แล้ว";
+      return;
+    }catch(e){
+      if (e && e.code === "declined"){ msg.textContent = "ยกเลิกการบันทึก"; return; }
+    }
+  }
+  let box = document.getElementById("qrView");
+  if (!box){
+    box = document.createElement("div");
+    box.id = "qrView";
+    box.style.cssText = "position:fixed;inset:0;background:#000d;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px";
+    box.innerHTML = '<p style="color:#fff;margin:0 0 12px">กดค้างที่รูป แล้วเลือก "บันทึกรูปภาพ"</p><img src="' + src + '" style="width:80%;max-width:360px;background:#fff;border-radius:12px;padding:8px"><button id="qrViewClose" class="btn" style="margin-top:14px;width:auto">ปิด</button>';
+    document.body.appendChild(box);
+    document.getElementById("qrViewClose").addEventListener("click", () => box.remove());
+  }
+  msg.textContent = "";
+}
+document.getElementById("saveQr").addEventListener("click", saveQrImage);
 
 bindEdits();
 renderPick();

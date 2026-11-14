@@ -74,6 +74,10 @@ input,select{width:100%;font:inherit;font-size:16px;min-height:46px;padding:8px 
         <p class="muted" style="margin:0 0 6px">สแกน QR พร้อมเพย์ในแอปธนาคาร (ยอดตั้งไว้แล้ว)</p>
         <img id="qrImg" alt="QR พร้อมเพย์">
         <p class="muted" id="ppId" style="margin:6px 0 0"></p>
+        <label style="text-align:left">รหัสพร้อมเพย์ (คัดลอกไปวางในแอปธนาคารได้)</label>
+        <textarea id="ppCode" readonly rows="3" style="width:100%;font:13px monospace;padding:8px;border:1px solid var(--line);border-radius:12px;word-break:break-all"></textarea>
+        <button class="btn" id="copyPp" style="margin-top:8px">คัดลอกรหัสพร้อมเพย์</button>
+        <p class="muted" id="copyMsg" style="margin:6px 0 0;min-height:1.2em"></p>
       </div>
       <div style="display:grid;gap:10px;margin-top:14px">
         <button class="btn">แนบสลิปที่โอนแล้ว</button>
@@ -160,7 +164,9 @@ function renderMe(){
   badge.textContent = LABEL[st];
   document.getElementById("amountText").textContent = PRICE.toLocaleString("th-TH") + " บาท";
   document.getElementById("qrImg").src = qrDataUrl(promptpayPayload(PROMPTPAY_ID, PRICE));
-  document.getElementById("ppId").textContent = "พร้อมเพย์: " + PROMPTPAY_ID + "";
+  document.getElementById("ppId").textContent = "พร้อมเพย์: " + PROMPTPAY_ID;
+  document.getElementById("ppCode").value = promptpayPayload(PROMPTPAY_ID, PRICE);
+  document.getElementById("copyMsg").textContent = "";
   document.getElementById("markPaid").disabled = m.paid;
   document.getElementById("markPaid").textContent = m.paid ? "แจ้งจ่ายแล้ว" : "แจ้งจ่ายแล้ว";
   document.getElementById("histList").innerHTML = m.history.map(h =>
@@ -196,6 +202,18 @@ document.getElementById("markPaid").addEventListener("click", () => {
   me.paid = true;
   log("แจ้งจ่ายแล้ว");
   renderMe();
+});
+
+document.getElementById("copyPp").addEventListener("click", async () => {
+  const box = document.getElementById("ppCode");
+  const msg = document.getElementById("copyMsg");
+  try{
+    await navigator.clipboard.writeText(box.value);
+    msg.textContent = "คัดลอกแล้ว นำไปวางในแอปธนาคารได้เลย";
+  }catch(e){
+    box.focus(); box.select(); box.setSelectionRange(0, box.value.length);
+    msg.textContent = "กดค้างที่กล่องแล้วเลือก คัดลอก";
+  }
 });
 
 bindEdits();
